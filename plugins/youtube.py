@@ -25,13 +25,24 @@ def get_video_description(video_id):
 
     data = request['data']
 
-    out = u'\x02{}\x02'.format(data['title'])
-
     if not data.get('duration'):
         return out
 
     length = data['duration']
-    out += u' - length \x02{}\x02'.format(timeformat.format_time(length, simple=True))
+    if length > 86400:
+	length=time.strftime("%d:%H:%M:%S", time.gmtime(length))
+    elif length > 3600:
+	length=time.strftime("%H:%M:%S", time.gmtime(length))
+    else:
+	length=time.strftime("%M:%S", time.gmtime(length))
+
+    try:
+        uploader = http.get_json(base_url + "users/{}?alt=json".format(data["uploader"]))["entry"]["author"][0]["name"]["$t"]
+    except:
+        uploader = data["uploader"]
+ 
+
+    out = u'\x02\x0301,00You\x0300,04Tube\017 \x02{}\x02 ({}) by \x02{}\x02.'.format(data['title'], length, uploader)
 
     if 'ratingCount' in data:
         # format
@@ -39,21 +50,21 @@ def get_video_description(video_id):
         dislikes = plural(data['ratingCount'] - int(data['likeCount']), "dislike")
 
         percent = 100 * float(data['likeCount'])/float(data['ratingCount'])
-        out += u' - {}, {} (\x02{:.1f}\x02%)'.format(likes,
-                                                    dislikes, percent)
+	ratingcount = data['ratingCount']
+        out += u' {:.1f}% ({:,} rating{})'.format(percent, ratingcount, "s"[ratingcount==1:])
 
+    upload_time = time.strptime(data['uploaded'], "%Y-%m-%dT%H:%M:%S.000Z")
     if 'viewCount' in data:
         views = data['viewCount']
-        out += u' - \x02{:,}\x02 view{}'.format(views, "s"[views==1:])
+    else:
+	views = 0
 
-    try:
-        uploader = http.get_json(base_url + "users/{}?alt=json".format(data["uploader"]))["entry"]["author"][0]["name"]["$t"]
-    except:
-        uploader = data["uploader"]
- 
-    upload_time = time.strptime(data['uploaded'], "%Y-%m-%dT%H:%M:%S.000Z")
-    out += u' - \x02{}\x02 on \x02{}\x02'.format(uploader,
-                                                time.strftime("%Y.%m.%d", upload_time))
+    if 'commentCount' in data:
+        comments = data['commentCount']
+    else:
+	comments = 0
+
+    out += u'. \x02{:,}\x02 comment{} and \x02{:,}\x02 view{} since \x02{}\x02 - \037http://youtu.be/{}\037'.format(comments, "s"[comments==1:], views, "s"[views==1:], time.strftime("%Y-%m-%d", upload_time), video_id)
 
     if 'contentRating' in data:
         out += u' - \x034NSFW\x02'
@@ -80,7 +91,7 @@ def youtube(inp):
 
     video_id = request['data']['items'][0]['id']
 
-    return get_video_description(video_id) + u" - " + video_url % video_id
+    return get_video_description(video_id)
 
 
 
