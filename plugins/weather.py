@@ -69,10 +69,9 @@ def get_weather(location):
 @hook.command(autohelp=False)
 def weather(inp, nick=None, reply=None, db=None, notice=None):
     "weather | <location> [save] | <@ user> -- Gets weather data for <location>."
-    save = True
+    save = False
     
     if '@' in inp:
-        save = False
         nick = inp.split('@')[1].strip()
         loc = database.get(db,'users','location','nick',nick)
         if not loc: return "No location stored for {}.".format(nick.encode('ascii', 'ignore'))
@@ -83,10 +82,9 @@ def weather(inp, nick=None, reply=None, db=None, notice=None):
                 notice(weather.__doc__)
                 return
         else:
-            # if not loc: save = True
-            if " dontsave" in inp: 
-                inp = inp.replace(' dontsave','')
-                save = False
+            if " save" in inp: 
+                inp = inp.replace(' save','')
+                save = True
             loc = inp.replace(' ','_') #.split()[0]
 
     location = http.quote_plus(loc)

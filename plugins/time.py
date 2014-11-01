@@ -5,9 +5,9 @@ from util.text import capitalize_first
 @hook.command('t', autohelp=False)
 @hook.command(autohelp=False)
 def time(inp, nick="", reply=None, db=None, notice=None):
-    "time [location] [dontsave] | [@ nick] -- Gets time for <location>."
+    "time [location] [save] | [@ nick] -- Gets time for <location>."
 
-    save = True
+    save = False
     
     if '@' in inp:
         nick = inp.split('@')[1].strip()
@@ -21,7 +21,7 @@ def time(inp, nick="", reply=None, db=None, notice=None):
                 return
         else:
             # if not location: save = True
-            if " dontsave" in inp: save = False
+            if " save" in inp: save = True
             location = inp.split()[0]
 
     # now, to get the actual time
