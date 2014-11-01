@@ -66,6 +66,7 @@ def get_weather(location):
 
 @hook.command('w', autohelp=False)
 @hook.command('we', autohelp=False)
+@hook.command('wz', autohelp=False)
 @hook.command(autohelp=False)
 def weather(inp, nick=None, reply=None, db=None, notice=None):
     "weather | <location> [save] | <@ user> -- Gets weather data for <location>."
