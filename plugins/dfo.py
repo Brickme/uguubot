@@ -9,14 +9,24 @@ from util import hook
 
 def dforoll (count, n):
     "roll an n-sided die count times"
-    if count < 100:
-      rolls = []
-      x = 0
-      while x < count:
-        result = random.randint(1, 10)
-        rolls.append(result)
-        if result < 10: x += 1
-      return rolls
+    rolls = []
+    rollstrings = []
+    x = 0
+    while x < count:
+      numresult = random.randint(1, 10)
+      if numresult >= 9:
+        result = "\x0309{}\x03".format(numresult)
+        if numresult == 10:
+          result = "\x02{}\x02".format(result)
+      elif numresult == 1:
+        result = "\x02\x0304{}\x03\x02".format(numresult)
+      else:
+        result = str(numresult)      
+
+      rolls.append(numresult)
+      rollstrings.append(result)
+      if numresult < 10: x += 1
+    return [rolls, rollstrings]
 
 @hook.command('dfo')
 def dfo(inp, nick=None):
@@ -27,12 +37,14 @@ def dfo(inp, nick=None):
     except ValueError:
       return "Invalid diceroll"
 
-    if count >= 100:
+    if count > 50:
       return "Too many dice!"
  
-    rolls = dforoll(count, 10)
+    result = dforoll(count, 10)
+    rolls = result[0]
+    rollstrings = result[1]
     total = sum(rolls)
-    numreroll = rolls.count(10)
+    numreroll = len(rolls) - count
     numsuccess = rolls.count(9)+numreroll
     numfail = rolls.count(1)
 
@@ -48,4 +60,6 @@ def dfo(inp, nick=None):
     if numfail > 0:
       end = "{} (\x0304\x02{}\x02 critical failure{}\x03)".format(end,str(numfail),"s"[numfail==1:])
 
-    return "\x02{}\x02 rolls {} times {}{}{}".format(nick, count, desc, rolls, end)
+    rolls="[{}]".format(", ".join(rollstrings))
+
+    return u"\x02{}\x02 rolls {} times {}{}{}".format(nick, count, desc, rolls, end)
