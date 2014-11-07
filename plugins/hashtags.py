@@ -114,7 +114,7 @@ def info(inp, notice=None, db=None):
 
 # @hook.regex(r'^(\b\S+\b)\?$')
 @hook.regex(r'\#(\b\S+\b)')
-@hook.regex(r'^\? ?(.+)')
+@hook.regex(r'^\?+ ?(.+)')
 def hashtag(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
     "<word>? -- Shows what data is associated with <word>."
     try:
