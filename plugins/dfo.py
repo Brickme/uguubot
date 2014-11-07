@@ -28,9 +28,9 @@ def dforoll (count, n):
       if numresult < 10: x += 1
     return [rolls, rollstrings]
 
-@hook.command('dfo')
+@hook.command('roll')
 def dfo(inp, nick=None):
-    "roll2 <dice> <action> -- Simulates dicerolls." \
+    "roll <dice> <action> -- Simulates dicerolls." \
 
     try:
       count = int(inp.split(' ', 1)[0])

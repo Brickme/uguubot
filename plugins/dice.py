@@ -32,7 +32,7 @@ def nrolls(count, n):
                 (.5 * (1 + n)) ** 2) * count) ** .5))]
 
 
-@hook.command('roll')
+#@hook.command('roll')
 #@hook.regex(valid_diceroll, re.I)
 @hook.command
 def dice(inp):
