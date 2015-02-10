@@ -175,8 +175,7 @@ def slogan(inp):
 
 
 def get_filename(action,notice):
-    if 'loli' in action: action = 'lolis'
-    elif 'insult' in action: action = 'insults'
+    if 'insult' in action: action = 'insults'
     elif 'kek' in action: action = 'keks'
     elif 'flirt' in action: action = 'flirts'
     elif 'moist' in action: action = 'moists'
@@ -325,12 +324,6 @@ def clearoldfortunes (db):
 def topkek(inp,say=None,notice=None):
     """topkek -- keks on demand."""
     say(process_text(inp,"keks",notice))
-    return
-
-@hook.command(autohelp=False)
-def loli(inp,say=None,notice=None):
-    """loli -- Returns a loli."""
-    say("\x02\x034NSFW\x03\x02 {}".format(process_text(inp,"lolis",notice)))
     return
 
 @hook.command(autohelp=False)
