@@ -3,7 +3,6 @@ import random
 
 from util import hook
 
-# @hook.regex(r'^uguubot(.*)')
 @hook.command('decide')
 @hook.command
 def choose(inp):
