@@ -281,7 +281,7 @@ def set(inp, conn=None, chan=None, db=None, notice=None):
         value = inp.replace(field,'').replace(nick,'').strip()
         if field and nick and value:
             if 'del' in value or 'none' in value: value = ''
-            if field in ['location', 'fines', 'lastfm', 'desktop', 'battlestation', 'birthday', 'waifu', 'greeting', 'snapchat']:
+            if field in ['location', 'fines', 'lastfm', 'desktop', 'battlestation', 'birthday', 'waifu', 'greeting', 'snapchat', 'steam']:
                 #if type(value) is list: value = value[0]
                 if value.lower() is 'none': database.set(db,'users',field, '','nick',nick) 
                 else: database.set(db,'users',field, value,'nick',nick) 
