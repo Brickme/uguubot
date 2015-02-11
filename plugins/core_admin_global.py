@@ -281,15 +281,7 @@ def set(inp, conn=None, chan=None, db=None, notice=None):
         value = inp.replace(field,'').replace(nick,'').strip()
         if field and nick and value:
             if 'del' in value or 'none' in value: value = ''
-            if 'location' in field or \
-                'fines' in field or\
-                'lastfm' in field or  \
-                'desktop' in field or \
-                'battlestation' in field or\
-                'birthday' in field or\
-                'waifu' in field or\
-                'greeting' in field or\
-                'snapchat' in field:
+            if field in ['location', 'fines', 'lastfm', 'desktop', 'battlestation', 'birthday', 'waifu', 'greeting', 'snapchat']:
                 #if type(value) is list: value = value[0]
                 if value.lower() is 'none': database.set(db,'users',field, '','nick',nick) 
                 else: database.set(db,'users',field, value,'nick',nick) 
@@ -305,8 +297,7 @@ def db(inp,db=None):
     split = inp.split(' ')
     action = split[0]
     if "init" in action:
-        result = db.execute("create table if not exists users(nick primary key, host, location, greeting, lastfm, fines, battlestation, desktop, horoscope, version)")
-        db.commit()
+	result = database.init(db)
         return result
     elif "addcol" in action: 
         table = split[1]
