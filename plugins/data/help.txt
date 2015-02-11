@@ -358,6 +358,5 @@ time <location|@ nick> [save] -- Gets time for <location>.
 youtube <query> -- Returns the first YouTube search result for <query>.
 gadmin <add|del> <nick|host> -- Make <nick|host> an global admin.(you can delete multiple admins at once)
 manga <query> - batoto Search
-loli -- Returns a loli.
 fact -- Gets a random fact from OMGFACTS.
 

@@ -33,8 +33,6 @@ def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
 
     if '.html' in url: return
 
-    if 'lolihub.tk' in url: return "http://lolihub.com <- themadman is a thief. Stealing OC from Nymovyn is the lowest of the low."
-
     if   'youtube.com'       in url: return                         #handled by youtube plugin: exiting
     elif 'youtu.be'          in url: return                         #handled by youtube plugin: exiting
     elif 'yooouuutuuube'     in url: return                         #handled by youtube plugin: exiting
