@@ -18,6 +18,7 @@ def init(db):
         db.execute("CREATE TABLE if not exists users({});".format(", ".join(user_columns)))
         db.commit()
         db_ready = True
+    return "Database ready"
 
 def field_exists(db,table,matchfield,matchvalue):
     init(db)
