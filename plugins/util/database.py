@@ -11,6 +11,7 @@ def init(db):
         db.execute("CREATE TABLE if not exists users(nick NOT NULL, mask, version, location, lastfm, fines, battlestation, desktop, horoscope, greeting, waifu, husbando, birthday, homescreen, snapchat, mal, selfie, primary key(nick));")
         db.commit()
         db_ready = True
+    return "Database ready"
 
 def init_tables(db, table):
     if "channels" in table: db.execute("INSERT INTO channels VALUES(?,'','','','','','','','','','')", [chan])
