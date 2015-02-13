@@ -56,13 +56,3 @@ def users(inp, nick=None,chan=None,notice=None):
 def getusers(inp, conn=None,chan=None):
     if inp: chan = inp
     conn.send('NAMES {}'.format(chan))
-
-    
-### dev ###
-# @hook.command(autohelp=False,adminonly=True)
-# def testcompare(inp, conn=None,chan=None, notice=None):
-#     users = 'greenbagels ChanStat Pinyin austin j4jackj uguubot infinity fappyhour takoyaki unfinity themadman Knish Onee-chan'.split(' ')
-#     inp = 'infinity uguubot themadman josh test2 test3'.split(' ')
-#     a = set(users)
-#     b = set(inp)
-#     notice(' '.join(a|b))
