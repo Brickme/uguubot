@@ -24,20 +24,24 @@ def commands(inp, say=None, notice=None, input=None, conn=None, bot=None):
     commands = dict((value, key) for key, value in funcs.iteritems())
 
     if not inp:
-        out = ["", ""]
+        output = []
         well = []
-        for x in commands:
-            well.append(x)
+	lines = 0
+        for command in commands:
+            well.append(command)
         well.sort()
-        for x in well:
-            if len(out[0]) + len(str(x)) > 405:
-                out[1] += " " + str(x)
-            else:
-                out[0] += " " + str(x)
-
-        notice("Commands I recognise: " + out[0][1:])
-        if out[1]:
-            notice(out[1][1:])
+	print(", ".join(well))
+        for command in well:
+	    if len(output) == 0 and lines == 0:
+		output.append("Commands I recognise ({}): {}".format(len(well), str(command)))
+		lines += 1
+	    else:
+		output.append(str(command))
+	    if len(", ".join(output)) > 405:
+		notice(", ".join(output))
+		output = []
+	if len(output) > 0:
+		notice(", ".join(output))
         notice("For detailed help, do '%shelp <example>' where <example> "\
                "is the name of the command you want help for." % conn.conf["command_prefix"])
 
