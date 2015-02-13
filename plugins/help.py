@@ -1,25 +1,28 @@
 import re
-from util import hook
+from util import hook, user
 
 @hook.command(autohelp=False)
-def commands(inp, say=None, notice=None, input=None, conn=None, bot=None):
+def commands(inp, say=None, notice=None, input=None, conn=None, bot=None, db=None):
     "commands  -- Gives a list of commands/help for a command."
     funcs = {}
     disabled = bot.config.get('disabled_plugins', [])
     disabled_comm = bot.config.get('disabled_commands', [])
     for command, (func, args) in bot.commands.iteritems():
-        fn = re.match(r'^plugins.(.+).py$', func._filename)
-        if fn.group(1).lower() not in disabled:
-            if not args.get('adminonly', False) or\
-            input.nick in bot.config["admins"] or\
-            input.mask in bot.config["admins"]:
-                if command not in disabled_comm:
-                    if func.__doc__ is not None:
-                        if func in funcs:
-                            if len(funcs[func]) < len(command):
-                                funcs[func] = command
-                        else:
-                            funcs[func] = command
+	fn = re.match(r'^plugins.(.+).py$', func._filename)
+	
+	if fn.group(1).lower() not in disabled and command not in disabled_comm: # Ignores disabled plugins and commands
+		if args.get('channeladminonly', False) and not user.is_admin(input.mask, input.chan, db, bot):
+			print("cadmin command: {} mask: {} chan: {} db: {}".format(command, input.mask, input.chan, bot))
+			continue
+		if args.get('adminonly', False) and not user.is_globaladmin(input.mask, input.chan, bot):
+			print("admin command: {} mask: {} chan: {} bot: {}".format(command, input.mask, input.chan, bot))
+			continue
+		if func.__doc__ is not None:
+			if func in funcs:
+				if len(funcs[func]) < len(command):
+	                                funcs[func] = command
+			else:
+				funcs[func] = command
 
     commands = dict((value, key) for key, value in funcs.iteritems())
 
@@ -32,7 +35,7 @@ def commands(inp, say=None, notice=None, input=None, conn=None, bot=None):
         well.sort()
         for command in well:
 	    if len(output) == 0 and lines == 0:
-		output.append("Commands I recognise ({}): {}".format(len(well), str(command)))
+		output.append("Commands you have access to ({}): {}".format(len(well), str(command)))
 		lines += 1
 	    else:
 		output.append(str(command))
