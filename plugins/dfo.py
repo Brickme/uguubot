@@ -34,8 +34,10 @@ def dfo(inp, nick=None):
 
     try:
       count = int(inp.split(' ', 1)[0])
+      action = " ".join(inp.split(' ', 1)[1:])
     except ValueError:
-      return "Invalid diceroll"
+      count = 2
+      action = inp
 
     if count > 50:
       return "Too many dice!"
@@ -48,8 +50,8 @@ def dfo(inp, nick=None):
     numsuccess = rolls.count(9)+numreroll
     numfail = rolls.count(1)
 
-    if len(inp.split(' ', 1)) > 1:
-      desc = "to {} ".format(inp.split(' ', 1)[1].strip())
+    if len(action) > 1:
+      desc = "to {} ".format(action.strip())
     else: desc = ""
 
     end = ""
