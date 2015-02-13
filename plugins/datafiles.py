@@ -12,22 +12,14 @@ color_codes = {
 with open("plugins/data/8ball_responses.txt") as f:
     responses = [line.strip() for line in f.readlines() if not line.startswith("//")]
 
-
 with open("plugins/data/larts.txt") as f:
     larts = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
 
 with open("plugins/data/insults.txt") as f:
     insults = [line.strip() for line in f.readlines() if not line.startswith("//")]
 
-
 with open("plugins/data/flirts.txt") as f:
     flirts = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-
-with open("plugins/data/yiffs.txt") as f:
-    yiffs = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
 
 with open("plugins/data/lewd.txt") as f:
     lewds = [line.strip() for line in f.readlines() if not line.startswith("//")]
@@ -47,7 +39,6 @@ def get_generator(_json, variables):
     data = json.loads(_json)
     return textgen.TextGenerator(data["templates"], data["parts"], variables=variables)
 
-
 def send_phrase(inp,attack,nick,conn,me,notice):
     target = inp.strip()
 
@@ -66,7 +57,6 @@ def send_phrase(inp,attack,nick,conn,me,notice):
     me(phrase.format(**values).decode('utf-8', "ignore"))
     return
 
-
 @hook.command('8ball')
 def eightball(input, me=None):
     """8ball <question> -- The all knowing magic eight ball,
@@ -75,13 +65,11 @@ def eightball(input, me=None):
     me("shakes the magic 8 ball... {}".format(magic))
     return
 
-
 @hook.command
 def lart(inp, me=None, nick=None, conn=None, notice=None):
     """lart <user> -- LARTs <user>."""
     send_phrase(inp,larts,nick,conn,me,notice)
     return
-
 
 @hook.command
 def insult(inp, me=None, nick=None, conn=None, notice=None):
@@ -89,20 +77,11 @@ def insult(inp, me=None, nick=None, conn=None, notice=None):
     send_phrase(inp,insults,nick,conn,me,notice)
     return
 
-
 @hook.command
 def flirt(inp, me=None, nick=None, conn=None, notice=None):
     """flirt <user> -- Makes the bot flirt <user>."""
     send_phrase(inp,flirts,nick,conn,me,notice)
     return
-
-
-@hook.command(autohelp=False)
-def yiff(inp, me=None, nick=None, conn=None, notice=None):
-    """yiff <user> -- yiffs <user>."""
-    send_phrase(inp,yiffs,nick,conn,me,notice)
-    return
-
 
 @hook.command(autohelp=False)
 def lewd(inp, me=None, nick=None, conn=None, notice=None):
@@ -112,7 +91,6 @@ def lewd(inp, me=None, nick=None, conn=None, notice=None):
     else:    
         send_phrase(inp,lewds,nick,conn,me,notice)
     return
-
 
 @hook.command
 def kill(inp, me=None, nick=None, conn=None, notice=None):
@@ -138,7 +116,6 @@ def kill(inp, me=None, nick=None, conn=None, notice=None):
     me(generator.generate_string())
     return
 
-
 @hook.command
 def slap(inp, me=None, nick=None, conn=None, notice=None):
     """slap <user> -- Makes the bot slap <user>."""
@@ -163,7 +140,6 @@ def slap(inp, me=None, nick=None, conn=None, notice=None):
     me(generator.generate_string())
     return
 
-
 @hook.command
 def slogan(inp):
     """slogan <word> -- Makes a slogan for <word>."""
@@ -173,16 +149,13 @@ def slogan(inp):
 
     return out.replace('<text>', inp)
 
-
 def get_filename(action,notice):
     if 'insult' in action: action = 'insults'
     elif 'kek' in action: action = 'keks'
     elif 'flirt' in action: action = 'flirts'
     elif 'moist' in action: action = 'moists'
     elif 'lewd' in action: action = 'lewds'
-    elif 'qt' in action: action = 'qts'
     elif 'urmom' in action: action = 'urmom'
-    elif 'honry' in action: action = 'old'
     elif 'old' in action: action = 'old'
     elif 'fortune' in action: action = 'fortunes'
     elif 'slogan' in action: action = 'slogans'
@@ -331,12 +304,6 @@ def topkek(inp,say=None,notice=None):
 def moistcake(inp,say=None,notice=None):
     "moistcake -- Moists on demand."
     say(process_text(inp,"moists",notice))
-    return
-
-@hook.command(autohelp=False)
-def qt(inp,me=None,say=None,notice=None):
-    """qt --  return qts."""
-    say(process_text(inp,"qts",notice))
     return
 
 @hook.command(autohelp=False)
