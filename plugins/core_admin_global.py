@@ -231,7 +231,7 @@ def say(inp, conn=None, chan=None):
 def msg(inp, conn=None, chan=None, notice=None):
     "msg <user> <message> -- Sends a Message."
     user = inp.split()[0]
-    message = inp.replace(user,'').strip()
+    message = " ".join(inp.split()[1:])
     out = u"PRIVMSG %s :%s" % (user, message)
     conn.send(out)
 
@@ -278,7 +278,7 @@ def set(inp, conn=None, chan=None, db=None, notice=None):
     elif len(inpsplit) >= 3:
         field = inp.split(" ")[0].strip()
         nick = inp.split(" ")[1].strip()
-        value = inp.replace(field,'').replace(nick,'').strip()
+	value = " ".join(inp.split(" ")[2:]).strip()
         if field and nick and value:
             if 'del' in value or 'none' in value: value = ''
             if 'location' in field or \
