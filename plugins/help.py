@@ -30,7 +30,6 @@ def commands(inp, say=None, notice=None, input=None, conn=None, bot=None):
         for command in commands:
             well.append(command)
         well.sort()
-	print(", ".join(well))
         for command in well:
 	    if len(output) == 0 and lines == 0:
 		output.append("Commands I recognise ({}): {}".format(len(well), str(command)))
