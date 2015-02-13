@@ -54,7 +54,6 @@ def version(inp, nick=None, chan=None, conn=None, notice=None):
     inp = inp.split(" ")
     user = inp[0]
     if not user: user=nick
-    if 'uguubot' in user: return '[VERSION] uguubot: SkyNet 0.99 kawaii disrespecting humanitys freedom edition'
     # ctcpcache_timer
     ctcpcache.append(("VERSION",user, chan))
     conn.send(u"PRIVMSG {} :\x01VERSION\x01".format(user))
