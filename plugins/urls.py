@@ -54,12 +54,12 @@ def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
     elif 'hentai.org'        in url: return hentai_url(url,bot)     #Hentai
     elif 'boards.4chan.org'  in url:                                #4chan
         if '4chan.org/b/'    in url: reply('\x033>/b/\x03')
-        if '#p'              in url: return fourchanquote_url(url)  #4chan Quoted Post
-        if '/thread/'        in url: return fourchanthread_url(url)   #4chan Post
-        if '/res/'           in url: return fourchanthread_url(url)   #4chan Post
-        if '/src/'           in url: return unmatched_url(url)      #4chan Image
-        else:                        return fourchanboard_url(url)  #4chan Board
-    else:                            return unmatched_url(url,chan,db)      #process other url
+        if '#p'              in url: return fourchanquote_url(url)     #4chan Quoted Post
+        if '/thread/'        in url: return fourchanthread_url(url)    #4chan Post
+        if '/res/'           in url: return fourchanthread_url(url)    #4chan Post
+        else:                        return fourchanboard_url(url)     #4chan Board
+    elif 'i.4cdn.org'	     in url: return unmatched_url(url,chan,db) #4chan Image
+    else:                            return unmatched_url(url,chan,db) #process other url
 
 
 #@hook.regex(*fourchan_re)
