@@ -84,11 +84,6 @@ def pid(inp):
 
 
 @hook.command(autohelp=False)
-def bots(inp):
-    return "Reporting in! [Python] See http://uguubot.com"
-
-
-@hook.command(autohelp=False)
 def source(inp):
-    return "\x02uguubot\x02 - http://github.com/infinitylabs/uguubot"
+    return "\x02uguubot\x02 fork - http://github.com/ScottSteiner/uguubot"
     
