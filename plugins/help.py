@@ -41,12 +41,12 @@ def commands(inp, say=None, notice=None, input=None, conn=None, bot=None):
 		output = []
 	if len(output) > 0:
 		notice(", ".join(output))
-        notice("For detailed help, do '%shelp <example>' where <example> "\
-               "is the name of the command you want help for." % conn.conf["command_prefix"])
+        notice("For detailed help, do '{}help <example>' where <example> "\
+               "is the name of the command you want help for.".format(conn.conf["command_prefix"]))
 
     else:
         if inp in commands:
-            notice(conn.conf["command_prefix"] + commands[inp].__doc__)
+            notice("{}{}".format(conn.conf["command_prefix"], commands[inp].__doc__))
 
 
 @hook.command('command', autohelp=False)
