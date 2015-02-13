@@ -188,6 +188,7 @@ def get_filename(action,notice):
     elif 'slogan' in action: action = 'slogans'
     elif 'troll' in action: action = 'troll'
     elif 'gain' in action: action = 'gainz'
+    elif 'nsfw' in action: action = 'nsfw'
     else: 
         notice('Invalid action')
         return
@@ -364,6 +365,12 @@ def bender(inp,say=None):
 def gainz(inp, say=None,notice=None):
     """gains -- SICK GAINZ BRO"""
     say(process_text(inp,"gainz",notice))
+    return
+
+@hook.command(autohelp=False)
+def nsfw(inp, say=None,notice=None):
+    """nsfw -- Have a nice fap"""
+    say(process_text(inp,"nsfw",notice))
     return
 
 
