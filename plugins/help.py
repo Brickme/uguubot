@@ -12,10 +12,8 @@ def commands(inp, say=None, notice=None, input=None, conn=None, bot=None, db=Non
 
 	if fn.group(1).lower() not in disabled and command not in disabled_comm: # Ignores disabled plugins and commands
 		if args.get('channeladminonly', False) and not user.is_admin(input.mask, input.chan, db, bot):
-			print("cadmin command: {} mask: {} chan: {} db: {}".format(command, input.mask, input.chan, bot))
 			continue
 		if args.get('adminonly', False) and not user.is_globaladmin(input.mask, input.chan, bot):
-			print("admin command: {} mask: {} chan: {} bot: {}".format(command, input.mask, input.chan, bot))
 			continue
 		if func.__doc__ is not None:
 			if func in funcs:
