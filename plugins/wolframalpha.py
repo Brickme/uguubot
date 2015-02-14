@@ -310,6 +310,7 @@ def wolframalpha(inp, bot=None):
     query = waeo.CreateQuery(http.quote_plus(inp))
     result = waeo.PerformQuery(query)
     waeqr = WolframAlphaQueryResult(result)
+
     results = []
     pods = waeqr.Pods()
     for pod in pods:
@@ -321,14 +322,6 @@ def wolframalpha(inp, bot=None):
             results.append(plaintext)
 
     try:
-        return u'{}: {}'.format(' '.join(results[0][0].split(' | ')).strip().replace('  ',' '),results[1][0])
+        return u'\x02[{}]\x02: {}'.format(' '.join(results[0][0].split(' | ')).strip().replace('  ',' '),results[1][0])
     except: 
         return errors[random.randint(0, len(errors) - 1)]
-    
-<<<<<<< HEAD
-=======
-# question_re = (r'(?:uguu|uguubot)\s(.+)', re.I)
-# @hook.regex(*question_re)
-# def wolframalpha_re(inp, bot=None):
-#     return wolframalpha(inp.group(1),bot)
->>>>>>> wolframalpha
