@@ -314,7 +314,7 @@ def cmdflood(inp, conn=None, chan=None, notice=None, db=None):
 
 @hook.command(permissions=["op_lock", "op"], channeladminonly=True, autohelp=False)
 def badwords(inp, notice=None, bot=None, chan=None, db=None):
-    """disabled [#channel] -- Lists disabled commands/."""
+    """disabled [#channel] -- Lists disabled commands."""
  
 
     if len(inp) == 0 or 'list' in inp:
