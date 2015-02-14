@@ -188,8 +188,8 @@ def get_filename(action,notice):
         return
     return action
 
-@hook.command
-def add(inp,notice=None, channeladminonly=True):
+@hook.command(channeladminonly=True)
+def add(inp,notice=None):
     """add <type> <data> -- appends <data> to <type>.txt"""
     #inp = inp.split('add')[1]
     action = inp.split(' ')[0]
