@@ -320,6 +320,6 @@ def wolframalpha(inp, bot=None):
             results.append(plaintext)
 
     try:
-        return u'[\x02{}\x02]: {}'.format(' '.join(results[0][0].split(' | ')).strip().replace('  ',' '),results[1][0])
+        return u'[\x02{}\x02]: {}'.format(re.sub(' (?:\||) +', ' ', ' '.join(results[0][0].splitlines())).strip(),results[1][0])
     except: 
 	return random.choice(errors)
