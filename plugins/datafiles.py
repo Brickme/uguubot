@@ -254,7 +254,6 @@ def process_text(inp,name,notice, position=True):
 #     lines =[]
 #     return reply
 
-@hook.command('wailord', autohelp=False)
 @hook.command(autohelp=False)
 def troll(inp, say=None,notice=None):
     """troll -- Trolls on demand"""
