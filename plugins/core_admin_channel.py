@@ -192,6 +192,28 @@ def unignore(inp, notice=None, bot=None, chan=None, db=None):
 
 
 ###############################
+###     Command Prefixes    ###
+
+@hook.command('prefixes', channeladminonly=True, autohelp=False)
+@hook.command(channeladminonly=True, autohelp=False)
+def prefix(inp, notice=None, bot=None, chan=None, db=None, conn=None):
+	"""Changes accepted command prefixes"""
+	global_prefix = conn.conf.get('command_prefix', '.')
+	if inp == 'del':
+	   database.set(db,'channels','prefix','','chan',chan)
+	   notice(u'Prefix{} for {} reset to: {}'.format('' if len(global_prefix) == 1 else 'es',chan, global_prefix))
+	elif len(inp) > 0:
+	   database.set(db,'channels','prefix',inp,'chan',chan)
+	   notice(u'Prefix{} for {} set to: {}'.format('' if len(inp) == 1 else 'es', chan, inp))
+	else:
+	   prefixes = database.get(db,'channels','prefix','chan',chan)
+	   if not prefixes:
+			   prefixes = 'global ({})'.format(global_prefix)
+	   notice(u'Prefix{} for {} are: {}'.format('' if len('blah') == 1 else 'es', chan, prefixes))
+	return
+
+
+###############################
 ### Enable/Disable Commands ###
 
 @hook.command(permissions=["op_lock", "op"], channeladminonly=True, autohelp=False)
