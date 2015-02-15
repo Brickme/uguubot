@@ -159,9 +159,10 @@ def main(conn, out):
     if inp.command == 'PRIVMSG':
         # COMMANDS
         if inp.chan == inp.nick:  # private message, no command prefix
-            prefix = '^(?:[%s]?|' % command_prefix
+            prefix = '^(?:[{}]?|'.format(command_prefix)
         else:
-            prefix = '^(?:[%s]|' % command_prefix
+	    if inp.chan == '#/jp/shows': command_prefix = '!+'
+            prefix = '^(?:[{}]|'.format(command_prefix)
 
         command_re = prefix + inp.conn.nick
         command_re += r'[,;:]+\s+)(\w+)(?:$|\s+)(.*)'
