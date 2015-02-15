@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from util import hook, textgen, text
 import random
 from random import randint
