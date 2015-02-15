@@ -33,9 +33,9 @@ def get_memory(db, word):
 
 #@hook.regex(r'(.*) is (.*)')
 #@hook.regex(r'(.*) are (.*)')
-@hook.command("learn", adminonly=False)
-@hook.command("r", adminonly=False)
-@hook.command(adminonly=False)
+@hook.command("learn", channeladminonly=True)
+@hook.command("r", channeladminonly=True)
+@hook.command(channeladminonly=True)
 def remember(inp, nick='', db=None, say=None, input=None, notice=None):
     "remember <word> <data> -- Remembers <data> with <word>."
     db_init(db)
@@ -163,7 +163,7 @@ def hashtag(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
             else:
                 say("\x02%s\x02 %s" % (factoid_id, result))
 
-@hook.command(r'keys')
+@hook.command(r'keys', autohelp=False)
 @hook.command(r'key')
 @hook.command(autohelp=False)
 def hashes(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
