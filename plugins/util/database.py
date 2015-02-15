@@ -7,7 +7,7 @@ def init(db):
     global db_ready
     if not db_ready: 
         # db.execute("CREATE TABLE if not exists seen(name, time, quote, chan, host, primary key(name, chan))")
-        db.execute("CREATE TABLE if not exists channels(chan NOT NULL, admins, permissions, ops, bans, disabled, ignored, badwords, flood, cmdflood, trimlength, autoop, votekick, voteban, primary key(chan));")
+        db.execute("CREATE TABLE if not exists channels(chan NOT NULL, admins, permissions, ops, bans, disabled, ignored, badwords, flood, cmdflood, trimlength, autoop, votekick, voteban, prefix, primary key(chan));")
         db.execute("CREATE TABLE if not exists users(nick NOT NULL, mask, version, location, lastfm, fines, battlestation, desktop, horoscope, greeting, waifu, husbando, birthday, homescreen, snapchat, mal, selfie, primary key(nick));")
         db.commit()
         db_ready = True
