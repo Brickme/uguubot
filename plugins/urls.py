@@ -26,11 +26,6 @@ def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
     try: trimlength = int(trimlength)
     except: trimlength = trimlength
 
-    if 'lrsp' == input.nick.lower(): 
-        reply('\x02\x034^^^ WARNING!!!\x03\x02 This link probably contains pedo.')
-        #reply(gelbooru.gelbooru("furry nsfw"))
-        return
-
     if '.html' in url.lower(): return
 
     if   'youtube.com'       in url.lower(): return                         #handled by youtube plugin: exiting
@@ -54,12 +49,12 @@ def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
     elif 'hentai.org'        in url.lower(): return hentai_url(url,bot)     #Hentai
     elif 'boards.4chan.org'  in url.lower():                                #4chan
         if '4chan.org/b/'    in url.lower(): reply('\x033>/b/\x03')
-        if '#p'              in url.lower(): return fourchanquote_url(url)     #4chan Quoted Post
-        if '/thread/'        in url.lower(): return fourchanthread_url(url)    #4chan Post
-        if '/res/'           in url.lower(): return fourchanthread_url(url)    #4chan Post
-        else:                        return fourchanboard_url(url)     #4chan Board
-    elif 'i.4cdn.org'	     in url.lower(): return unmatched_url(url,chan,db) #4chan Image
-    else:                            return unmatched_url(url,chan,db) #process other url
+        if '#p'              in url.lower(): return fourchanquote_url(url)  #4chan Quoted Post
+        if '/thread/'        in url.lower(): return fourchanthread_url(url)   #4chan Post
+        if '/res/'           in url.lower(): return fourchanthread_url(url)   #4chan Post
+        if '/src/'           in url.lower(): return unmatched_url(url)      #4chan Image
+        else:                        return fourchanboard_url(url)  #4chan Board
+    else:                            return unmatched_url(url,chan,db)      #process other url
 
 
 #@hook.regex(*fourchan_re)
@@ -216,26 +211,31 @@ user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefo
 cookies = dict()
 headers = {
     'User-Agent': user_agent,
-    'Cookie':'',
+    'Cookie':''
 }
 
 
 def unmatched_url(match,chan,db):
     disabled_commands = database.get(db,'channels','disabled','chan',chan)
-
+    
     r = requests.get(match, headers=headers,allow_redirects=True, stream=True)
-
+    # print r.headers
+    # print r.status_code
+    # print r.request.headers
     if r.status_code != 404:
+        # image_hash = md5.new(r.content).hexdigest()
+        # print image_hash
         content_type = r.headers['Content-Type']
         try: encoding = r.headers['content-encoding']
         except: encoding = ''
+        # try: 
+        # r.raise_for_status()
         
         if content_type.find("html") != -1: # and content_type is not 'gzip':
             body = html.fromstring(r.text)
-	    try:
-		return body.xpath('//title/text()')[0]
-	    except:
-		return '{} {}'.format(match,headers)
+            return body.xpath('//title/text()')[0]
+
+            # return re.match(r'^\W+(\w.*)', body.xpath('//title/text()')[0]).group(1)
         else:
 	    if disabled_commands:
                 if 'filesize' in disabled_commands: return
@@ -250,9 +250,112 @@ def unmatched_url(match,chan,db):
                     length = "Unknown size"
             except:
                 length = "Unknown size"
-            if "503 B" in length or length is None: length = ""
+            if "503 B" in length: length = ""
+            if length is None: length = ""
             return u"[{}] {}".format(content_type, length)
     else: 
         return 
 
     return
+
+
+    # except: 
+        # return "Error: {}".format(r.status_code)
+
+
+    
+
+
+
+
+
+
+
+    # page = urllib2.urlopen(match)
+    # print "Response:", page
+    # print "This gets the code: ", page.code
+    # print "The Headers are: ", page.info()
+
+    # html = response.read()
+    # print "Get all data: ", html
+
+    # Get only the length
+    # print "Get the length :", len(html)
+
+    # try: 
+    #     content_type = page.info()['Content-Type'].split(';')[0]
+    # except: 
+    #     return
+
+    # if content_type.find("html") != -1:    
+    #     html = response.read()
+    #     # print "Get all data: ", html
+    #     try: title = html.title.renderContents().strip()
+    #     except: return
+    #     #if len(title) > 300: title = soup.find('meta', {'name' : 'description'})['content']
+    #     if not title: return #"Could not find title."
+    #     return http.process_text("{}".format(title[:trimlength]))
+    # else:
+    #     if 'filesizes' in disabled_commands: return
+    #     try:
+    #         if page.info()['Content-Length']:
+    #             length = int(page.info()['Content-Length'])
+    #             if length > 1048576: length = str("{0:.2f}".format(round((float(length) / 1048576),2))) + ' MiB'
+    #             elif length > 1024: length = str("{0:.2f}".format(round((float(length) / 1024),2))) + ' KiB'
+    #             elif length < 0: length = 'Unknown size'
+    #             else: length = str(length) + ' B'
+    #         else: 
+    #             length = "Unknown size"
+    #     except:
+    #         length = "Unknown size"
+
+    #     if length != None: return u"[{}] {}".format(content_type, length)
+    # return
+
+
+
+    # return "Infinity is touching my insides. Parsing back soon!"
+    # page = opener.open(match) #urllib.urlopen(match)
+    # page.info()
+
+    # try: 
+    #     content_type = page.info()['Content-Type'].split(';')[0]
+    #     print content_type
+    # except: 
+    #     return
+
+    # if content_type.find("html") != -1:
+    #     soup = BeautifulSoup(page)
+    #     # print soup
+    #     try: title = soup.title.renderContents().strip()
+    #     except: return
+    #     #if len(title) > 300: title = soup.find('meta', {'name' : 'description'})['content']
+    #     if not title: return #"Could not find title."
+    #     return http.process_text("{}".format(title[:trimlength]))
+    # else:
+    #     if 'filesizes' in disabled_commands: return
+    #     try:
+    #         if page.info()['Content-Length']:
+    #             length = int(page.info()['Content-Length'])
+    #             if length > 1048576: length = str("{0:.2f}".format(round((float(length) / 1048576),2))) + ' MiB'
+    #             elif length > 1024: length = str("{0:.2f}".format(round((float(length) / 1024),2))) + ' KiB'
+    #             elif length < 0: length = 'Unknown size'
+    #             else: length = str(length) + ' B'
+    #         else: 
+    #             length = "Unknown size"
+    #     except:
+    #         length = "Unknown size"
+
+    #     if length != None: return u"[{}] {}".format(content_type, length)
+    # return
+
+
+
+    # import httplib
+    # matches = re.search('.*\/\/(.*?)(\/.*)', match)
+    
+    # conn = httplib.HTTPConnection(matches.group(1))
+    # conn.request("HEAD",matches.group(2))
+    # res = conn.getresponse()
+    # print res.status, res.reason
+    # print res.getheaders()
