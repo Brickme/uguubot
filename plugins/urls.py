@@ -18,7 +18,7 @@ link_re = (r'((https?://([-\w\.]+)+(:\d+)?(/([\S/_\.]*(\?\S+)?)?)?))', re.I)
 def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
     global trimlength
     url = match.group(1).replace('https:','http:')
-    print(match)
+
     if '127.0.0.1' in url or 'localhost' in url.lower(): return
     
     trimlength = database.get(db,'channels','trimlength','chan',chan)
@@ -222,7 +222,7 @@ headers = {
 
 def unmatched_url(match,chan,db):
     disabled_commands = database.get(db,'channels','disabled','chan',chan)
-    print('match: {}\nheaders: {}'.format(match, headers))
+
     r = requests.get(match, headers=headers,allow_redirects=True, stream=True)
 
     if r.status_code != 404:
