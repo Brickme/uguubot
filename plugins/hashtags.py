@@ -1,5 +1,5 @@
 # Written by Scaevolus 2010
-from util import hook, http, text, execute
+from util import hook, http, text, execute, web
 import string
 import sqlite3
 import re
@@ -175,5 +175,7 @@ def hashes(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
 
     rows = db.execute(search).fetchall()
 
-    if rows: return ", ".join(tuple(x[0] for x in rows))
+    if rows:
+	url = web.isgd(web.haste(", ".join(tuple(x[0] for x in rows))))
+	return "{}: {}".format(url, ", ".join(tuple(x[0] for x in rows)))
     else: return "No results."
