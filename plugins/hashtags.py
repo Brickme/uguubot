@@ -1,5 +1,5 @@
 # Written by Scaevolus 2010
-from util import hook, http, text, execute
+from util import hook, http, text, execute, web
 import string
 import sqlite3
 import re
@@ -33,9 +33,9 @@ def get_memory(db, word):
 
 #@hook.regex(r'(.*) is (.*)')
 #@hook.regex(r'(.*) are (.*)')
-@hook.command("learn", adminonly=False)
-@hook.command("r", adminonly=False)
-@hook.command(adminonly=False)
+@hook.command("learn", channeladminonly=True)
+@hook.command("r", channeladminonly=True)
+@hook.command(channeladminonly=True)
 def remember(inp, nick='', db=None, say=None, input=None, notice=None):
     "remember <word> <data> -- Remembers <data> with <word>."
     db_init(db)
@@ -114,7 +114,7 @@ def info(inp, notice=None, db=None):
 
 # @hook.regex(r'^(\b\S+\b)\?$')
 @hook.regex(r'\#(\b\S+\b)')
-@hook.regex(r'^\? ?(.+)')
+@hook.regex(r'^\?+ ?(.+)')
 def hashtag(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
     "<word>? -- Shows what data is associated with <word>."
     try:
@@ -163,7 +163,7 @@ def hashtag(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
             else:
                 say("\x02%s\x02 %s" % (factoid_id, result))
 
-@hook.command(r'keys')
+@hook.command(r'keys', autohelp=False)
 @hook.command(r'key')
 @hook.command(autohelp=False)
 def hashes(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
@@ -175,5 +175,7 @@ def hashes(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
 
     rows = db.execute(search).fetchall()
 
-    if rows: return ", ".join(tuple(x[0] for x in rows))
+    if rows:
+	url = web.isgd(web.haste(", ".join(tuple(x[0] for x in rows))))
+	return "{}: {}".format(url, ", ".join(tuple(x[0] for x in rows)))
     else: return "No results."
