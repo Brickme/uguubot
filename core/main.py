@@ -150,7 +150,8 @@ def match_command(command):
 
 def main(conn, out):
     inp = Input(conn, *out)
-    command_prefix = conn.conf.get('command_prefix', '.')
+    default_prefix = conn.conf.get('command_prefix', '.')
+    command_prefix = conn.conf['channel_prefix'].get(inp.chan, default_prefix)
 
     # EVENTS
     for func, args in bot.events[inp.command] + bot.events['*']:
