@@ -34,6 +34,9 @@
         "#devbot"
       ], 
       "command_prefix": ".,+", 
+      "channel_prefix": {
+        "#rmsbot": "!+"
+      },
       "invite_join": false, 
       "nick": "uguubot2", 
       "nickserv_password": "", 
