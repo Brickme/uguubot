@@ -13,7 +13,6 @@ from util import hook, http, web
 
 
 base_url = "http://thetvdb.com/api/"
-api_key = "469B73127CA0C411"
 
 # http://thetvdb.com/api/GetSeries.php?seriesname=clannad
 
@@ -25,36 +24,14 @@ def get_zipped_xml(*args, **kwargs):
     zip_buffer = StringIO(http.get(*args, **kwargs))
     return etree.parse(ZipFile(zip_buffer, "r").open(path))
 
-def get_series_info(seriesname):
+def get_episodes_for_series(seriesname, bot):
     res = {"error": None, "ended": False, "episodes": None, "name": None}
     # http://thetvdb.com/wiki/index.php/API:GetSeries
-    try:
-        query = http.get_xml(base_url + 'GetSeries.php', seriesname=seriesname)
-    except URLError:
-        res["error"] = "error contacting thetvdb.com"
-        return res
-    series_id = ""
-    try: series_id = query.xpath('//id/text()')
-    except: print "Failed"
 
+    api_key = bot.config.get("api_keys", {}).get("tvdb", None)
+    if not api_key:
+        return "error: no api key set"
 
-    if not series_id:
-        result = "\x02Could not find show:\x02 %s" % seriesname
-    else:
-        series_name = query.xpath('//SeriesName/text()')[0]
-        overview = query.xpath('//Overview/text()')[0]
-        firstaired = query.xpath('//FirstAired/text()')[0]
-        #imdb_id = query.xpath('//IMDB_ID/text()')[0]
-        #imdb_url = web.isgd("http://www.imdb.com/title/%s" % imdb_id)
-        tvdb_url = web.isgd("http://thetvdb.com/?tab=series&id=%s" % series_id[0])
-        status = tv_next(seriesname)
-        result = '\x02%s\x02 (%s) \x02-\x02 \x02%s\x02 - [%s] - %s' % (series_name, firstaired, status, tvdb_url, overview)
-
-    return result
-
-def get_episodes_for_series(seriesname):
-    res = {"error": None, "ended": False, "episodes": None, "name": None}
-    # http://thetvdb.com/wiki/index.php/API:GetSeries
     try:
         query = http.get_xml(base_url + 'GetSeries.php', seriesname=seriesname)
     except URLError:
@@ -70,8 +47,7 @@ def get_episodes_for_series(seriesname):
     series_id = series_id[0]
 
     try:
-        series = get_zipped_xml(base_url + '%s/series/%s/all/en.zip' %
-                                    (api_key, series_id), path="en.xml")
+        series = get_zipped_xml('{}{}/series/{}/all/en.zip'.format(base_url, api_key, series_id), path="en.xml")
     except URLError:
         res["error"] = "error contacting thetvdb.com"
         return res
@@ -82,6 +58,7 @@ def get_episodes_for_series(seriesname):
         res["ended"] = True
 
     res["episodes"] = series.xpath('//Episode')
+    res["airtime"] = series.xpath('//Airs_Time/text()')[0]
     res["name"] = series_name
     return res
 
@@ -103,10 +80,12 @@ def get_episode_info(episode):
     if episode_name == "TBA":
         episode_name = None
 
-    episode_desc = '%s' % episode_num
+    episode_summary = episode.findtext("Overview")
+
+    episode_desc = episode_num
     if episode_name:
-        episode_desc += ' - %s' % episode_name
-    return (first_aired, airdate, episode_desc)
+        episode_desc += ' - {}'.format(episode_name)
+    return (first_aired, airdate, episode_desc, episode_summary)
 
 
 
@@ -114,25 +93,68 @@ def get_episode_info(episode):
 @hook.command
 @hook.command('show')
 @hook.command('series')
-def tv(inp):
+def tv(inp, bot=None):
     ".tv <series> -- get info for the <series>"
-    return get_series_info(inp)
+    res = {"error": None, "ended": False, "episodes": None, "name": None}
+    # http://thetvdb.com/wiki/index.php/API:GetSeries
+    try:
+        query = http.get_xml(base_url + 'GetSeries.php', seriesname=inp)
+    except URLError as e:
+        return e
+    series_id = ""
+    try: series_id = query.xpath('//id/text()')
+    except: print "Failed"
+
+    if not series_id:
+        return "\x02Could not find show:\x02 {}".format(inp)
+    else:
+        series_name = query.xpath('//SeriesName/text()')[0]
+        overview = query.xpath('//Overview/text()')[0]
+        firstaired = query.xpath('//FirstAired/text()')[0]
+        tvdb_url = web.isgd("http://thetvdb.com/?tab=series&id={}".format(series_id[0]))
+        status = get_status(inp, bot)
+	if len(status) > 1:
+		status = "Next Episode: {} {} ({})".format(status[0], status[3], status[1])
+
+    if len(status) == 1:
+	status = status[0]
+	if status == "ended":
+		status = "Ended"
+	elif status == "noeps":
+		status = "No new episodes"
+
+    return '\x02{}\x02 ({}) \x02-\x02 \x02{}\x02 - [{}] - {}'.format(series_name, firstaired, status, tvdb_url, overview)
 
 @hook.command('next')
 @hook.command
-def tv_next(inp):
+def tv_next(inp, bot=None):
     ".tv_next <series> -- get the next episode of <series>"
-    episodes = get_episodes_for_series(inp)
+    status = get_status(inp, bot)
+    
+    if len(status) == 1:
+	if status[0] == "ended":
+		return "{} has ended.".format(inp)
+	elif status[0] == "noeps":
+		return "No new episodes for {}.".format(inp)
+	else:
+		return status[0]
+    else:
+	return "\x02Episode Name\x02: {} - \x02Airdate\x02: {} {} - \x02Summary\x02: {}".format(status[1], status[0], status[3], status[2])
+
+def get_status(seriesname, bot):
+
+    episodes = get_episodes_for_series(seriesname, bot)
 
     if episodes["error"]:
         return episodes["error"]
 
     series_name = episodes["name"]
     ended = episodes["ended"]
+    airtime = episodes["airtime"]
     episodes = episodes["episodes"]
 
     if ended:
-        return "%s has ended." % series_name
+        return ["ended"]
 
     next_eps = []
     today = datetime.date.today()
@@ -143,35 +165,30 @@ def tv_next(inp):
         if ep_info is None:
             continue
 
-        (first_aired, airdate, episode_desc) = ep_info
+        (first_aired, airdate, episode_desc, episode_summary) = ep_info
 
         if airdate > today:
-            next_eps = ['%s (%s)' % (first_aired, episode_desc)]
+            next_eps.insert(0,[first_aired, episode_desc, episode_summary, airtime])
         elif airdate == today:
-            next_eps = ['Today (%s)' % episode_desc] + next_eps
+            next_eps.insert(0,["Today", episode_desc, episode_summary, airtime])
         else:
             #we're iterating in reverse order with newest episodes last
             #so, as soon as we're past today, break out of loop
             break
 
     if not next_eps:
-        return "No new episodes scheduled for %s" % series_name
+        return ["noeps"]
 
-    if len(next_eps) == 1:
-        #return "The next episode of %s airs %s" % (series_name, next_eps[0])
-        return "Next episode: %s" % (next_eps[0])
-    else:
-        next_eps = ', '.join(next_eps)
-        return "Airs: %s" % (next_eps)
-
+    return next_eps[0]
 
 @hook.command
 @hook.command('tv_prev')
 @hook.command('prev')
 @hook.command('last')
-def tv_last(inp):
+def tv_last(inp, bot=None):
     ".tv_last <series> -- gets the most recently aired episode of <series>"
-    episodes = get_episodes_for_series(inp)
+
+    episodes = get_episodes_for_series(inp, bot)
 
     if episodes["error"]:
         return episodes["error"]
@@ -194,14 +211,14 @@ def tv_last(inp):
         if airdate < today:
             #iterating in reverse order, so the first episode encountered
             #before today was the most recently aired
-            prev_ep = '%s (%s)' % (first_aired, episode_desc)
+            prev_ep = '{} ({})'.format(first_aired, episode_desc)
             break
 
     if not prev_ep:
-        return "There are no previously aired episodes for %s" % series_name
+        return "There are no previously aired episodes for {}".format(series_name)
     if ended:
-        return '%s ended. The last episode aired %s' % (series_name, prev_ep)
-    return "The last episode of %s aired %s" % (series_name, prev_ep)
+        return '{} ended. The last episode aired {}'.format(series_name, prev_ep)
+    return "The last episode of {} aired {}".format(series_name, prev_ep)
 
 
 
@@ -238,8 +255,8 @@ def imdb(inp):
 
 
 api_root = 'http://api.rottentomatoes.com/api/public/v1.0/'
-movie_search_url = api_root + 'movies.json'
-movie_reviews_url = api_root + 'movies/%s/reviews.json'
+movie_search_url = '{}movies.json'.format(api_root)
+movie_reviews_url = '{}movies/{}/reviews.json'.format(api_root, '{}')
 
 @hook.command('rt')
 @hook.command
@@ -264,10 +281,10 @@ def rottentomatoes(inp,bot=None):
     if critics_score == -1:
         return
 
-    reviews = http.get_json(movie_reviews_url % id, apikey=api_key, review_type='all')
+    reviews = http.get_json(movie_reviews_url.format(id), apikey=api_key, review_type='all')
     review_count = reviews['total']
 
     fresh = critics_score * review_count / 100
     rotten = review_count - fresh
 
-    return u"%s - critics: \x02%d%%\x02 (%d\u2191/%d\u2193) audience: \x02%d%%\x02 - %s" % (title, critics_score, fresh, rotten, audience_score, url)
+    return u"{} - critics: \x02{}%\x02 ({}\u2191/{}\u2193) audience: \x02{}%\x02 - {}".format(title, critics_score, fresh, rotten, audience_score, url)

@@ -19,7 +19,8 @@ def google(inp,db=None,chan=None):
 
     parsed = api_get('web', inp)
     if not 200 <= parsed['responseStatus'] < 300:
-        raise IOError('error searching for pages: {}: {}'.format(parsed['responseStatus'], ''))
+	print(parsed)
+        raise IOError('error searching for pages: {}: {}'.format(parsed['responseStatus'], parsed['responseDetails']))
     if not parsed['responseData']['results']:
         return 'No results found.'
 
@@ -75,7 +76,7 @@ def implying(inp):
 
     parsed = api_get('images', search)
     if not 200 <= parsed['responseStatus'] < 300:
-        raise IOError('error searching for images: {}: {}'.format(parsed['responseStatus'], ''))
+        raise IOError('error searching for images: {}: {}'.format(parsed['responseStatus'], parsed['responseDetails']))
     if not parsed['responseData']['results']:
         return 'no images found'
     try: return u'\x033\x02>{}\x02\x03 {}'.format(search, parsed['responseData']['results'][:10][num]['unescapedUrl'])
