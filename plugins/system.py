@@ -2,18 +2,12 @@ import os
 import re
 import time
 import platform
-from util import hook
+from util import hook, formatting
 from datetime import timedelta
 
 
 def convert_kilobytes(kilobytes):
-    if kilobytes >= 1024:
-        megabytes = kilobytes / 1024
-        size = '%.2f MB' % megabytes
-    else:
-        size = '%.2f KB' % kilobytes
-    return size
-
+    return formatting.filesize(kilobytes*1024).replace('iB', 'B')
 
 @hook.command(autohelp=False, adminonly=True)
 def system(inp):
@@ -86,4 +80,3 @@ def pid(inp):
 @hook.command(autohelp=False)
 def source(inp):
     return "\x02uguubot\x02 fork - http://github.com/ScottSteiner/uguubot"
-    
