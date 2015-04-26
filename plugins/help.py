@@ -1,5 +1,5 @@
 import re
-from util import hook, user
+from util import hook, user, web
 
 @hook.command(autohelp=False)
 def commands(inp, say=None, notice=None, input=None, conn=None, bot=None, db=None):
@@ -27,27 +27,35 @@ def commands(inp, say=None, notice=None, input=None, conn=None, bot=None, db=Non
     if not inp:
         output = []
         well = []
-	lines = 0
+	line = []
+	help = "For detailed help, do '{}help <example>' where <example> "\
+	       "is the name of the command you want help for.".format(conn.conf["command_prefix"])
+
         for command in commands:
             well.append(command)
         well.sort()
-        for command in well:
-	    if len(output) == 0 and lines == 0:
-		output.append("Commands you have access to ({}): {}".format(len(well), str(command)))
-		lines += 1
-	    else:
-		output.append(str(command))
-	    if len(", ".join(output)) > 405:
-		notice(", ".join(output))
-		output = []
-	if len(output) > 0:
-		notice(", ".join(output))
-        notice("For detailed help, do '{}help <example>' where <example> "\
-               "is the name of the command you want help for.".format(conn.conf["command_prefix"]))
 
-    else:
-        if inp in commands:
-            notice("{}{}".format(conn.conf["command_prefix"], commands[inp].__doc__))
+        for command in well:
+		if output == [] and line == []:
+			line.append("Commands you have access to ({}): {}".format(len(well), str(command)))
+		else:
+			line.append(str(command))
+		if len(", ".join(line)) > 405:
+			output.append(", ".join(line))
+			line = []
+	if len(line) > 0:
+		output.append(", ".join(line))
+	if len(output) == 1:
+		output.append(help)
+		for line in output:
+			notice(line)
+	else:
+		output = ", ".join(output)
+		haste = web.haste("{}\n\n{}".format(output, help))
+		notice("Commands you have access to ({}): {}".format(len(well), haste))
+    elif inp in commands:
+	notice("{}{}".format(conn.conf["command_prefix"], commands[inp].__doc__))
+    return
 
 
 @hook.command('command', autohelp=False)
