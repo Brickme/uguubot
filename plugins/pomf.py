@@ -11,14 +11,14 @@
 import requests, subprocess, tempfile, os, re
 import hashtags, datafiles
 from mimetypes import guess_extension, guess_type
-from util import hook, http
+from util import hook, http, formatting
 
 @hook.command("pomftube", adminonly=True)
 @hook.command(adminonly=True)
 def pomf(url):
 	"pomf <url> -- Downloads file and uploads it"
 
-	return "pomf: {}".format(upload(url))
+	return formatting.output('pomf', [upload(url)])
 
 @hook.command("pr", adminonly=True)
 @hook.command("premember", adminonly=True)
@@ -29,8 +29,8 @@ def pomfremember(inp, chan=None, nick=None, say=None, db=None, adminonly=True):
         word, url = inp.split(None, 1)
 	pomfurl = upload(url)
 	strsave = "{} {}".format(word, pomfurl)
-	say("{} remembered as {}".format(word, pomfurl))
 	hashtags.remember(strsave, nick, db)
+	return(formatting.output('pomf', ['{} remembered as {}'.format(word, pomfurl)]))
 
 @hook.command("padd", adminonly=True)
 @hook.command(adminonly=True)
@@ -40,8 +40,8 @@ def pomfadd(inp, chan=None, nick=None, notice=None, db=None, say=None):
         dfile, url = inp.split(None, 1)
 	pomfurl = upload(url)
 	strsave = "{} {}".format(dfile, pomfurl)
-	say("{} added to {}".format(pomfurl, dfile))
 	datafiles.add(strsave, notice)
+	return(formatting.output('pomf', ['{} remembered as {}'.format(pomfurl, dfile)]))
 
 def upload(url):
 	cclive = subprocess.Popen("cclive --support | xargs | tr ' ' '|'", stdout=subprocess.PIPE, shell=True)
@@ -81,3 +81,4 @@ def upload(url):
 		return "http://a.pomf.se/{}".format(content.json()["files"][0]["url"])
 	except Exception as e:
 		return "Error: {}".format(e)
+
