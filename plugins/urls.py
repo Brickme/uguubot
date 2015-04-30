@@ -201,17 +201,30 @@ headers = {
 def unmatched_url(match,chan,db):
     disabled_commands = database.get(db,'channels','disabled','chan',chan)
     
-    r = requests.get(match, headers=headers,allow_redirects=True, stream=True)
+    try:
+	r = requests.get(match, headers=headers,allow_redirects=True, stream=True)
+    except Exception as e:
+	return 'Error: {}'.format(e)
+
     if r.status_code != 404:
         content_type = r.headers['Content-Type']
         try: encoding = r.headers['content-encoding']
         except: encoding = ''
         
         if content_type.find("html") != -1: # and content_type is not 'gzip':
-            body = html.fromstring(r.text)
+	    data = ''
+	    for chunk in r.iter_content(chunk_size=1024):
+		data += chunk
+		if len(data) > 48336: break
+
+            body = html.fromstring(data)
+
+            try: title = body.xpath('//title/text()')[0]
+	    except: return formatting.output('URL', ['No Title'])
+
             try: title_formatted = text.fix_bad_unicode(body.xpath('//title/text()')[0])
             except: title_formatted = body.xpath('//title/text()')[0]
-            return title_formatted
+            return formatting.output('URL', [title_formatted])
         else:
 	    if disabled_commands:
                 if 'filesize' in disabled_commands: return
@@ -226,8 +239,5 @@ def unmatched_url(match,chan,db):
                 length = "Unknown size"
             if "503 B" in length: length = ""
             if length is None: length = ""
-            return u"[{}] {}".format(content_type, length)
-    else: 
-        return 
-
+	    return formatting.output('URL', ['{} Size: {}'.format(content_type, length)])
     return
