@@ -3,13 +3,12 @@ import time
 
 from util import hook, http, timeformat
 
-
 youtube_re = (r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)'
-              '([-_a-zA-Z0-9]+)', re.I)
+              '([-_a-zA-Z0-9]+)', re.I) 
 
-base_url = 'http://gdata.youtube.com/feeds/api/'
-api_url = base_url + 'videos/{}?v=2&alt=jsonc'
-search_api_url = base_url + 'videos?v=2&alt=jsonc&max-results=1'
+base_url = 'https://www.googleapis.com/youtube/v3/'
+search_api_url = base_url + 'search?part=id,snippet'
+api_url = base_url + 'videos?part=snippet,statistics,contentDetails'
 video_url = "http://youtu.be/%s"
 
 
@@ -17,116 +16,130 @@ def plural(num=0, text=''):
     return "{:,} {}{}".format(num, text, "s"[num==1:])
 
 
-def get_video_description(video_id):
-    request = http.get_json(api_url.format(video_id))
+def get_video_description(key,video_id):
+    request = http.get_json(api_url, key=key, id=video_id)
 
     if request.get('error'):
         return
 
-    data = request['data']
-
-    if not data.get('duration'):
-        return out
-
-    length = data['duration']
-    if length > 86400:
-	length=time.strftime("%d:%H:%M:%S", time.gmtime(length))
-    elif length > 3600:
-	length=time.strftime("%H:%M:%S", time.gmtime(length))
-    else:
-	length=time.strftime("%M:%S", time.gmtime(length))
+    data = request['items'][0]
 
     try:
-        uploader = http.get_json(base_url + "users/{}?alt=json".format(data["uploader"]))["entry"]["author"][0]["name"]["$t"]
-    except:
-        uploader = data["uploader"]
- 
+        data['contentDetails'].get('duration')
+    except KeyError:
+        return u'\x02{}\x02'.format(data['snippet']['title'])
 
-    out = u'\x02\x0301,00You\x0300,04Tube\017 \x02{}\x02 ({}) by \x02{}\x02.'.format(data['title'], length, uploader)
+    length = re.sub('[PT]', '', data['contentDetails']['duration'])
+    timelist = re.findall('(\d+[DHMS])', length)
 
-    if 'ratingCount' in data:
-        # format
-        likes = plural(int(data['likeCount']), "like")
-        dislikes = plural(data['ratingCount'] - int(data['likeCount']), "dislike")
+    length = 0
+    for t in timelist:
+	t_field = int(t[:-1])
+	if t[-1:] == 'D':   length += 86400 * t_field
+	elif t[-1:] == 'H': length += 3600 * t_field
+	elif t[-1:] == 'M': length += 60 * t_field
+	elif t[-1:] == 'S': length += t_field
 
-        percent = 100 * float(data['likeCount'])/float(data['ratingCount'])
-	ratingcount = data['ratingCount']
-        out += u' {:.1f}% ({:,} rating{})'.format(percent, ratingcount, "s"[ratingcount==1:])
+    if length > 86400: length=time.strftime("%d:%H:%M:%S", time.gmtime(length))
+    elif length > 3600: length=time.strftime("%H:%M:%S", time.gmtime(length))
+    else: length=time.strftime("%M:%S", time.gmtime(length))
 
-    upload_time = time.strptime(data['uploaded'], "%Y-%m-%dT%H:%M:%S.000Z")
-    if 'viewCount' in data:
-        views = data['viewCount']
-    else:
-	views = 0
+    uploader = data['snippet']['channelTitle']
 
-    if 'commentCount' in data:
-        comments = data['commentCount']
-    else:
-	comments = 0
+    out = u'\x02\x0301,00You\x0300,04Tube\017 \x02{}\x02 ({}) by \x02{}\x02.'.format(data['snippet']['title'], length, uploader)
+
+    try:
+        data['statistics']
+    except KeyError:
+        return out
+
+    stats = data['statistics']
+    likes = plural(int(stats['likeCount']), "like")
+    dislikes = plural(int(stats['dislikeCount']), "dislike")
+
+    percent = 100 * float(stats['likeCount'])/(int(stats['likeCount'])+int(stats['dislikeCount']))
+    ratingcount = int(stats['likeCount']) + int(stats['dislikeCount'])
+    out += u' {:.1f}% ({:,} rating{})'.format(percent, ratingcount, "s"[ratingcount==1:])
+
+    views = int(stats['viewCount'])
+
+    upload_time = time.strptime(data['snippet']['publishedAt'], "%Y-%m-%dT%H:%M:%S.000Z")
+
+    comments = int(stats['commentCount'])
 
     out += u'. \x02{:,}\x02 comment{} and \x02{:,}\x02 view{} since \x02{}\x02 - \037http://youtu.be/{}\037'.format(comments, "s"[comments==1:], views, "s"[views==1:], time.strftime("%Y-%m-%d", upload_time), video_id)
 
-    if 'contentRating' in data:
-        out += u' - \x034NSFW\x02'
+    try:
+        data['contentDetails']['contentRating']
+    except KeyError:
+        return out
+
+    out += u' - \x034NSFW\x02'
 
     return out
 
 
 @hook.regex(*youtube_re)
-def youtube_url(match):
-    return get_video_description(match.group(1))
+def youtube_url(match,bot=None):
+    key = bot.config.get("api_keys", {}).get("youtube")
+
+    return get_video_description(key,match.group(1))
 
 
 @hook.command('yt')
 @hook.command
-def youtube(inp):
+def youtube(inp, bot=None):
     """youtube <query> -- Returns the first YouTube search result for <query>."""
-    request = http.get_json(search_api_url, q=inp)
+    key = bot.config.get("api_keys", {}).get("youtube")
+
+    try:
+	request = http.get_json(search_api_url, key=key, q=inp, type='video')
+    except Exception as e:
+	print(e.__dict__)
+	return e
 
     if 'error' in request:
-        return 'error performing search'
+        return 'Error performing search.'
 
-    if request['data']['totalItems'] == 0:
-        return 'no results found'
+    if request['pageInfo']['totalResults'] == 0:
+        return 'No results found.'
 
-    video_id = request['data']['items'][0]['id']
+    video_id = request['items'][0]['id']['videoId']
 
-    return get_video_description(video_id)
-
+    return get_video_description(key,video_id)
 
 
 @hook.command('ytime')
 @hook.command
-def youtime(inp):
+def youtime(inp, bot=None):
     """youtime <query> -- Gets the total run time of the first YouTube search result for <query>."""
-    request = http.get_json(search_api_url, q=inp)
+    key = bot.config.get("api_keys", {}).get("youtube")
+    request = http.get_json(search_api_url, key=key, q=inp, type='video')
 
     if 'error' in request:
-        return 'error performing search'
+        return 'Error performing search.'
 
-    if request['data']['totalItems'] == 0:
-        return 'no results found'
+    if request['pageInfo']['totalResults'] == 0:
+        return 'No results found.'
 
-    video_id = request['data']['items'][0]['id']
-    request = http.get_json(api_url.format(video_id))
+    video_id = request['items'][0]['id']['videoId']
 
-    if request.get('error'):
-        return
-    data = request['data']
+    request = http.get_json(api_url, key=key, id=video_id)
 
-    if not data.get('duration'):
-        return
+    data = request['items'][0]
 
-    length = data['duration']
-    views = data['viewCount']
-    total = int(length * views)
+    length = data['contentDetails']['duration']
+    timelist = length[2:-1].split('M')
+    seconds = 60*int(timelist[0]) + int(timelist[1])
 
-    length_text = timeformat.format_time(length, simple=True)
+    views = int(data['statistics']['viewCount'])
+    total = int(seconds * views)
+
+    length_text = timeformat.format_time(seconds, simple=True)
     total_text = timeformat.format_time(total, accuracy=8)
 
     return u'The video \x02{}\x02 has a length of {} and has been viewed {:,} times for ' \
-            'a total run time of {}!'.format(data['title'], length_text, views, \
-                                            total_text)
+            'a total run time of {}!'.format(data['snippet']['title'], length_text, views, total_text)
 
 
 ytpl_re = (r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)', re.I)
@@ -134,12 +147,17 @@ ytpl_re = (r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*
 @hook.regex(*ytpl_re)
 def youtubeplaylist_url(match):
     location = match.group(4).split("=")[-1]
+
     try:
         soup = http.get_soup("https://www.youtube.com/playlist?list=" + location)
     except Exception:
         return "\x034\x02Invalid response."
+
     title = soup.find('title').text.split('-')[0].strip()
     author = soup.find('img', {'class': 'channel-header-profile-image'})['title']
-    numvideos = soup.find('ul', {'class': 'header-stats'}).findAll('li')[0].text.split(' ')[0]
-    views = soup.find('ul', {'class': 'header-stats'}).findAll('li')[1].text.split(' ')[0]
+    numvideos = soup.find('ul', {'class': 'pl-header-details'}).findAll('li')[1].string
+    numvideos = re.sub("\D", "", numvideos)
+    views = soup.find('ul', {'class': 'pl-header-details'}).findAll('li')[2].string
+    views = re.sub("\D", "", views)
+
     return u"\x02{}\x02 - \x02{}\x02 views - \x02{}\x02 videos - \x02{}\x02".format(title, views, numvideos, author)
