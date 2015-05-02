@@ -93,10 +93,10 @@ def get_log_fd(dir, server, chan):
 def log(paraml, input=None, bot=None):
     timestamp = gmtime(timestamp_format)
 
-    try:
-	fd = get_log_fd(bot.persist_dir, input.server, 'raw')
-    except Exception as ex:
-	print("Error: {}".format(ex))
+    if bot is None or input is None:
+        return
+
+    fd = get_log_fd(bot.persist_dir, input.server, 'raw')
     fd.write(timestamp + ' ' + input.raw + '\n')
 
     if input.command == 'QUIT':  # these are temporary fixes until proper

@@ -29,16 +29,16 @@ def get_video_description(key,video_id):
     except KeyError:
         return u'\x02{}\x02'.format(data['snippet']['title'])
 
-    length = re.sub('[PT]', '', data['contentDetails']['duration'])
+    length = data['contentDetails']['duration']
     timelist = re.findall('(\d+[DHMS])', length)
 
-    length = 0
+    seconds = 0
     for t in timelist:
-	t_field = int(t[:-1])
-	if t[-1:] == 'D':   length += 86400 * t_field
-	elif t[-1:] == 'H': length += 3600 * t_field
-	elif t[-1:] == 'M': length += 60 * t_field
-	elif t[-1:] == 'S': length += t_field
+        t_field = int(t[:-1])`
+        if   t[-1:] == 'D': seconds += 86400 * t_field`
+        elif t[-1:] == 'H': seconds += 3600 * t_field`
+        elif t[-1:] == 'M': seconds += 60 * t_field`
+        elif t[-1:] == 'S': seconds += t_field`
 
     if length > 86400: length=time.strftime("%d:%H:%M:%S", time.gmtime(length))
     elif length > 3600: length=time.strftime("%H:%M:%S", time.gmtime(length))
