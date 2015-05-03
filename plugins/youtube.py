@@ -130,8 +130,15 @@ def youtime(inp, bot=None):
     data = request['items'][0]
 
     length = data['contentDetails']['duration']
-    timelist = length[2:-1].split('M')
-    length = 60*int(timelist[0]) + int(timelist[1])
+    timelist = re.findall('(\d+[DHMS])', length)
+
+    seconds = 0
+    for t in timelist:
+        t_field = int(t[:-1])
+        if   t[-1:] == 'D': seconds += 86400 * t_field
+        elif t[-1:] == 'H': seconds += 3600 * t_field
+        elif t[-1:] == 'M': seconds += 60 * t_field
+        elif t[-1:] == 'S': seconds += t_field
 
     views = int(data['statistics']['viewCount'])
     total = int(length * views)
