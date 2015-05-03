@@ -32,13 +32,14 @@ def get_video_description(key,video_id):
     length = data['contentDetails']['duration']
     timelist = re.findall('(\d+[DHMS])', length)
 
-    seconds = 0
+    length = 0
     for t in timelist:
         t_field = int(t[:-1])
-        if   t[-1:] == 'D': seconds += 86400 * t_field
-        elif t[-1:] == 'H': seconds += 3600 * t_field
-        elif t[-1:] == 'M': seconds += 60 * t_field
-        elif t[-1:] == 'S': seconds += t_field
+	print(t_field)
+        if   t[-1:] == 'D': length += 86400 * t_field
+        elif t[-1:] == 'H': length += 3600 * t_field
+        elif t[-1:] == 'M': length += 60 * t_field
+        elif t[-1:] == 'S': length += t_field
 
     if length > 86400: length=time.strftime("%d:%H:%M:%S", time.gmtime(length))
     elif length > 3600: length=time.strftime("%H:%M:%S", time.gmtime(length))
@@ -130,12 +131,12 @@ def youtime(inp, bot=None):
 
     length = data['contentDetails']['duration']
     timelist = length[2:-1].split('M')
-    seconds = 60*int(timelist[0]) + int(timelist[1])
+    length = 60*int(timelist[0]) + int(timelist[1])
 
     views = int(data['statistics']['viewCount'])
-    total = int(seconds * views)
+    total = int(length * views)
 
-    length_text = timeformat.format_time(seconds, simple=True)
+    length_text = timeformat.format_time(length, simple=True)
     total_text = timeformat.format_time(total, accuracy=8)
 
     return u'The video \x02{}\x02 has a length of {} and has been viewed {:,} times for ' \
