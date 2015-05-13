@@ -41,7 +41,7 @@ def get_generator(_json, variables):
     data = json.loads(_json)
     return textgen.TextGenerator(data["templates"], data["parts"], variables=variables)
 
-def send_phrase(inp,attack,nick,conn,me,notice):
+def get_phrase(inp,attack,nick,conn,notice,chan):
     target = inp.strip()
 
     if " " in target: 
@@ -51,12 +51,17 @@ def send_phrase(inp,attack,nick,conn,me,notice):
     # if the user is trying to make the bot slap itself, slap them
     if target.lower() == conn.nick.lower() or target.lower() == "itself": target = nick
 
-    values = {"user": target,"nick": conn.nick} #"channel": conn.chan
+    values = {"user": target,"user_uppercase": target.upper(),"nick": conn.nick,"channel": chan}
     #if inp.split(" ")[-1].isdigit: phrase = attack[int(inp.split(" ")[-1].strip())-1]
     #else: 
-    phrase = random.choice(attack)
+    print(random.choice(attack))
+    return random.choice(attack).format(**values).decode('utf-8', "ignore")
+
+
+def send_phrase(inp,attack,nick,conn,cmd,notice,chan):
+    phrase = get_phrase(inp,attack,nick,conn,notice,chan)
     # act out the message
-    me(phrase.format(**values).decode('utf-8', "ignore"))
+    cmd(phrase)
     return
 
 @hook.command('8ball')
@@ -68,34 +73,34 @@ def eightball(input, me=None):
     return
 
 @hook.command
-def lart(inp, me=None, nick=None, conn=None, notice=None):
+def lart(inp, me=None, nick=None, conn=None, notice=None, chan=None):
     """lart <user> -- LARTs <user>."""
-    send_phrase(inp,larts,nick,conn,me,notice)
+    send_phrase(inp,larts,nick,conn,me,notice,chan)
     return
 
 @hook.command
-def insult(inp, me=None, nick=None, conn=None, notice=None):
+def insult(inp, say=None, nick=None, conn=None, notice=None, chan=None):
     """insult <user> -- Makes the bot insult <user>."""
-    send_phrase(inp,insults,nick,conn,me,notice)
+    send_phrase(inp,insults,nick,conn,say,notice,chan)
     return
 
 @hook.command
-def flirt(inp, me=None, nick=None, conn=None, notice=None):
+def flirt(inp, say=None, nick=None, conn=None, notice=None, chan=None):
     """flirt <user> -- Makes the bot flirt <user>."""
-    send_phrase(inp,flirts,nick,conn,me,notice)
+    send_phrase(inp,flirts,nick,conn,say,notice,chan)
     return
 
 @hook.command(autohelp=False)
-def lewd(inp, me=None, nick=None, conn=None, notice=None):
+def lewd(inp, me=None, nick=None, conn=None, notice=None, chan=None):
     """lewd <user> -- lewd <user>."""
     if len(inp) == 0:
         return 'ヽ(◔ ◡ ◔)ノ.･ﾟ*｡･+☆LEWD☆'.decode('UTF-8')
     else:    
-        send_phrase(inp,lewds,nick,conn,me,notice)
+        send_phrase(inp,lewds,nick,conn,me,notice,chan)
     return
 
 @hook.command
-def kill(inp, me=None, nick=None, conn=None, notice=None):
+def kill(inp, me=None, nick=None, conn=None, notice=None, chan=None):
     """kill <user> -- Makes the bot kill <user>."""
     target = inp.strip()
 
