@@ -5,7 +5,10 @@ global userlist
 
 def format_hostmask(inp):
     "format_hostmask -- Returns a nicks userhost"
-    return re.sub(r'(@[^@\.]+\d{2,}([^\.]?)+\.)','*',inp.replace('@','@@')).replace('~','').replace('@@','@').lower().strip()
+    try:
+        return inp.split('@')[1]
+    except:
+        return inp
 
 
 def get_hostmask(inp,db):

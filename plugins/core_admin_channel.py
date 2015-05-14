@@ -1,15 +1,13 @@
 # Plugin made by Infinity, Lukeroge and neersighted
-from util import hook, scheduler, user, database
+from util import hook, scheduler, user, database, formatting
 import re
 
 # \binfinity@[^\s]*like.lolis\b
 @hook.command(autohelp=False,adminonly=True)
-def mask(inp,bot=None,input=None):
-    return re.sub(r'((?:@)[^@\.]+\d{2,}([^\.]?)+\.)','*',inp.replace('@','@@')).replace('~','').replace('@@','@').lower().strip()
-
-def format_hostmask(inp):
-    "format_hostmask -- Returns a nicks userhost"
-    return re.sub(r'(@[^@\.]+\d{2,}([^\.]?)+\.)','*',inp.replace('@','@@')).replace('~','').replace('@@','@').lower().strip()
+def mask(inp,bot=None,input=None,db=None):
+    if inp: mask = user.get_hostmask(inp,db)
+    else: mask = input.mask
+    return formatting.output('hostmask', [mask])
 
 
 def compare_hostmasks(hostmask,matchmasks):
