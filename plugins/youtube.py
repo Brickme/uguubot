@@ -76,7 +76,7 @@ def get_video_description(key,video_id):
 
 @hook.regex(*youtube_re)
 def youtube_url(match,bot=None):
-    key = bot.config.get("api_keys", {}).get("youtube")
+    key = bot.config.get("api_keys", {}).get("google")
 
     return get_video_description(key,match.group(1))
 
@@ -85,7 +85,7 @@ def youtube_url(match,bot=None):
 @hook.command
 def youtube(inp, bot=None):
     """youtube <query> -- Returns the first YouTube search result for <query>."""
-    key = bot.config.get("api_keys", {}).get("youtube")
+    key = bot.config.get("api_keys", {}).get("google")
 
     request = http.get_json(search_api_url, key=key, q=inp, type='video')
 
@@ -104,7 +104,7 @@ def youtube(inp, bot=None):
 @hook.command
 def youtime(inp, bot=None):
     """youtime <query> -- Gets the total run time of the first YouTube search result for <query>."""
-    key = bot.config.get("api_keys", {}).get("youtube")
+    key = bot.config.get("api_keys", {}).get("google")
     request = http.get_json(search_api_url, key=key, q=inp, type='video')
 
     if 'error' in request:
