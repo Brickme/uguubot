@@ -39,7 +39,7 @@ def highlight_sieve(bot, input, func, kind, args):
         channeladmin = user.is_channeladmin(input.mask, input.chan, db)
         if not globaladmin and not channeladmin:
             if len(users & inp) > 5: 
-                input.conn.send(u"MODE {} +b *!*{}".format(input.chan, user.format_hostmask(input.mask)))
+                input.conn.send(u"MODE {} +b *!*@{}".format(input.chan, user.format_hostmask(input.mask)))
             input.conn.send(u"KICK {} {} :MASSHIGHLIGHTING FAGGOT GET #REKT".format(input.chan, input.nick))
     return input
 
