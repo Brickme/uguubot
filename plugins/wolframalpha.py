@@ -36,6 +36,7 @@ class WolframAlphaEngine:
     self.PodTimeout = ''
     self.FormatTimeout = ''
     self.Async = ''
+    self.Format = ''
 
   def CreateQuery(self, query=''):
     waeq = WolframAlphaQuery(query)
@@ -44,12 +45,14 @@ class WolframAlphaEngine:
     waeq.PodTimeout = self.PodTimeout
     waeq.FormatTimeout = self.FormatTimeout
     waeq.Async = self.Async
+    waeq.Format = self.Format
     waeq.ToURL()
     return waeq.Query
 
   def PerformQuery(self, query=''):
 
     try:
+      print('{}{}'.format(self.server,query))
       result = urllib2.urlopen(self.server, query)
       result = result.read()
     except:
@@ -65,7 +68,8 @@ class WolframAlphaQuery:
     self.PodTimeout = ''
     self.FormatTimeout = ''
     self.Async = ''
- 
+    self.Format = ''
+
   def ToURL(self):
     self.Query = 'input=' + self.Query
     self.Query = self.Query + '&appid=' + self.appid
@@ -77,6 +81,8 @@ class WolframAlphaQuery:
       self.Query = self.Query + '&formattimeout=' + self.FormatTimeout
     if self.Async:
       self.Query = self.Query + '&async=' + self.Async
+    if self.Format:
+      self.Query = self.Query + '&format=' + self.Format
     return
 
   def AddPodTitle(self, podtitle=''):
@@ -296,7 +302,8 @@ def wolframalpha(inp, bot=None):
     scantimeout = '3.0'
     podtimeout = '4.0'
     formattimeout = '8.0'
-    async = 'True'
+    async = ''
+    format = 'plaintext'
 
     waeo = WolframAlphaEngine(api_key, server)
 
@@ -304,6 +311,7 @@ def wolframalpha(inp, bot=None):
     waeo.PodTimeout = podtimeout
     waeo.FormatTimeout = formattimeout
     waeo.Async = async
+    waeo.Format = format
 
     query = waeo.CreateQuery(http.quote_plus(inp))
     result = waeo.PerformQuery(query)
