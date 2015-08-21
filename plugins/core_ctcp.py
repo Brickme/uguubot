@@ -137,9 +137,9 @@ def ctcp_event(paraml, input=None, bot=None, conn=None):
                         if senttime: 
                             diff = (curtime - float(senttime.group(0)))
                             if diff <= 1:    
-                                conn.send(u"PRIVMSG {} :[{}] {}: {} ms".format(channel, kind, nick, diff*1000))
+                                conn.send(u"PRIVMSG {} :[{}] {}: {:.0f} ms".format(channel, kind, nick, diff*1000))
                             else:
-                                conn.send(u"PRIVMSG {} :[{}] {}: {} seconds".format(channel, kind, nick, diff))
+                                conn.send(u"PRIVMSG {} :[{}] {}: {:.3f} seconds".format(channel, kind, nick, diff))
                             return
                         else:
                             #conn.send(u"PRIVMSG {} :[{}] {}: Infinite. Enable CTCP Responses you baka.".format(channel, kind, nick))
