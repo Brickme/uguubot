@@ -23,13 +23,13 @@ def pomf(url):
 @hook.command("pr", adminonly=True)
 @hook.command("premember", adminonly=True)
 @hook.command(adminonly=True)
-def pomfremember(inp, chan=None, nick=None, say=None, db=None, adminonly=True):
+def pomfremember(inp, chan=None, nick=None, say=None, db=None, notice=None):
 	"pomfremember <word> <url> -- Downloads file, uploads it and adds it to the dictionary"
 
         word, url = inp.split(None, 1)
 	pomfurl = upload(url)
 	strsave = "{} {}".format(word, pomfurl)
-	hashtags.remember(strsave, nick, db)
+	hashtags.remember(strsave, nick, db, say, inp, notice)
 	return(formatting.output('pomf', ['{} remembered as {}'.format(word, pomfurl)]))
 
 @hook.command("padd", adminonly=True)
@@ -75,10 +75,10 @@ def upload(url):
 		fh = open(file, "rb")
 		fh.seek(0)
 
-		content = requests.post(url="http://pomf.se/upload.php", files={"files[]":fh})
+		content = requests.post(url="http://sugoi.space/upload.php", files={"files[]":fh})
 		if not content.status_code // 100 == 2:
 			raise Exception("Unexpected response {}".format(content))
-		return "http://a.pomf.se/{}".format(content.json()["files"][0]["url"])
+		return "http://a.sugoi.space/{}".format(content.json()["files"][0]["url"])
 	except Exception as e:
 		return "Error: {}".format(e)
 
