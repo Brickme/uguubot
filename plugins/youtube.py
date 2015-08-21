@@ -24,10 +24,12 @@ def get_video_description(key,video_id):
 
     data = request['items'][0]
 
+    title = re.sub(r'[\r\n]+', ' ', data['snippet']['title'])
+
     try:
         data['contentDetails'].get('duration')
     except KeyError:
-        return u'\x02{}\x02'.format(data['snippet']['title'])
+        return u'\x02{}\x02'.format(title)
 
     length = data['contentDetails']['duration']
     timelist = re.findall('(\d+[DHMS])', length)
@@ -35,7 +37,6 @@ def get_video_description(key,video_id):
     length = 0
     for t in timelist:
         t_field = int(t[:-1])
-	print(t_field)
         if   t[-1:] == 'D': length += 86400 * t_field
         elif t[-1:] == 'H': length += 3600 * t_field
         elif t[-1:] == 'M': length += 60 * t_field
@@ -47,7 +48,7 @@ def get_video_description(key,video_id):
 
     uploader = data['snippet']['channelTitle']
 
-    out = u'\x02\x0301,00You\x0300,04Tube\017 \x02{}\x02 ({}) by \x02{}\x02.'.format(data['snippet']['title'], length, uploader)
+    out = u'\x02\x0301,00You\x0300,04Tube\017 \x02{}\x02 ({}) by \x02{}\x02.'.format(title, length, uploader)
 
     try:
         data['statistics']
@@ -58,9 +59,12 @@ def get_video_description(key,video_id):
     likes = plural(int(stats['likeCount']), "like")
     dislikes = plural(int(stats['dislikeCount']), "dislike")
 
-    percent = 100 * float(stats['likeCount'])/(int(stats['likeCount'])+int(stats['dislikeCount']))
     ratingcount = int(stats['likeCount']) + int(stats['dislikeCount'])
-    out += u' {:.1f}% ({:,} rating{})'.format(percent, ratingcount, "s"[ratingcount==1:])
+    try:
+        percent = 100 * int(stats['likeCount'])/ratingcount
+        out += u' {:.1f}% ({:,} rating{})'.format(percent, ratingcount, "s"[ratingcount==1:])
+    except:
+        out += u' {:,} rating{}'.format(ratingcount, "s"[ratingcount==1:])
 
     views = int(stats['viewCount'])
 
@@ -96,7 +100,6 @@ def youtube(inp, bot=None):
     try:
 	request = http.get_json(search_api_url, key=key, q=inp, type='video')
     except Exception as e:
-	print(e.__dict__)
 	return e
 
     if 'error' in request:
