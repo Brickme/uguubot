@@ -41,7 +41,7 @@ def dfo(inp, nick=None):
 
     if count > 50:
       return "Too many dice!"
- 
+
     result = dforoll(count, 10)
     rolls = result[0]
     rollstrings = result[1]
