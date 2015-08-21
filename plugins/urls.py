@@ -27,8 +27,6 @@ def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
     try: trimlength = int(trimlength)
     except: trimlength = trimlength
 
-    if '.html' in url.lower(): return
-
     if   'youtube.com'       in url.lower(): return                         #handled by youtube plugin: exiting
     elif 'youtu.be'          in url.lower(): return                         #handled by youtube plugin: exiting
     elif 'yooouuutuuube'     in url.lower(): return                         #handled by youtube plugin: exiting
@@ -227,7 +225,8 @@ def unmatched_url(match,chan,db):
 
             try: title_formatted = text.fix_bad_unicode(body.xpath('//title/text()')[0])
             except: title_formatted = body.xpath('//title/text()')[0]
-            return formatting.output('URL', ['{} ({})'.format(title_formatted, domain)])
+            title_formatted = title_formatted.strip(' \t\n\r')
+            return formatting.output('URL', [u'{} ({})'.format(title_formatted[:trimlength], domain)])
         else:
 	    if disabled_commands:
                 if 'filesize' in disabled_commands: return
