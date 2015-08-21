@@ -1,6 +1,6 @@
 # IMDb lookup plugin by Ghetto Wizard (2011).
 
-from util import hook, http
+from util import hook, http, formatting
 import re
 
 import datetime
@@ -84,7 +84,7 @@ def get_episode_info(episode):
 
     episode_desc = episode_num
     if episode_name:
-        episode_desc += ' - {}'.format(episode_name)
+        episode_desc += u' - {}'.format(episode_name)
     return (first_aired, airdate, episode_desc, episode_summary)
 
 
@@ -114,7 +114,8 @@ def tv(inp, bot=None):
         tvdb_url = web.isgd("http://thetvdb.com/?tab=series&id={}".format(series_id[0]))
         status = get_status(inp, bot)
 	if len(status) > 1:
-		status = "Next Episode: {} {} ({})".format(status[0], status[3], status[1])
+		(airdate, airtime, episode_number, episode_name, summary) = status
+		status = "Next Episode: {} {} ({})".format(airdate, airtime, episode_name)
 
     if len(status) == 1:
 	status = status[0]
@@ -123,7 +124,7 @@ def tv(inp, bot=None):
 	elif status == "noeps":
 		status = "No new episodes"
 
-    return '\x02{}\x02 ({}) \x02-\x02 \x02{}\x02 - [{}] - {}'.format(series_name, firstaired, status, tvdb_url, overview)
+    return formatting.output('TV', ['\x02{}\x02 ({}) \x02-\x02 \x02{}\x02 - {} - {}'.format(series_name, firstaired, status, tvdb_url, overview)])
 
 @hook.command('next')
 @hook.command
@@ -139,7 +140,9 @@ def tv_next(inp, bot=None):
 	else:
 		return status[0]
     else:
-	return "\x02Episode Name\x02: {} - \x02Airdate\x02: {} {} - \x02Summary\x02: {}".format(status[1], status[0], status[3], status[2])
+	(airdate, airtime, episode_number, episode_name, summary) = status
+
+	return formatting.output("TV", [u"\x02Next Episode Name\x02: {} ({})".format(episode_name, episode_number), "\x02Airdate\x02: {} {}".format(airdate, airtime), "\x02Summary\x02: {}".format(summary)])
 
 def get_status(seriesname, bot):
 
@@ -166,11 +169,14 @@ def get_status(seriesname, bot):
             continue
 
         (first_aired, airdate, episode_desc, episode_summary) = ep_info
-
+        try:
+            (episode_number, episode_name) = episode_desc.split(' - ', 1)
+        except:
+            (episode_number, episode_name) = [episode_desc, 'N/A']
         if airdate > today:
-            next_eps.insert(0,[first_aired, episode_desc, episode_summary, airtime])
+            next_eps.insert(0,[first_aired, airtime, episode_number, episode_name, episode_summary])
         elif airdate == today:
-            next_eps.insert(0,["Today", episode_desc, episode_summary, airtime])
+            next_eps.insert(0,["Today", airtime, episode_number, episode_name, episode_summary])
         else:
             #we're iterating in reverse order with newest episodes last
             #so, as soon as we're past today, break out of loop
@@ -220,6 +226,41 @@ def tv_last(inp, bot=None):
         return '{} ended. The last episode aired {}'.format(series_name, prev_ep)
     return "The last episode of {} aired {}".format(series_name, prev_ep)
 
+@hook.command('tonight', autohelp=False)
+@hook.command(autohelp=False)
+def tv_tonight(inp,bot=None):
+    '.tonight -- gets upcoming TV shows from Sickbeard'
+
+    api_key = bot.config.get("api_keys", {}).get("sickbeard_key", None)
+    api_ip = bot.config.get("api_keys", {}).get("sickbeard_ip", None)
+    if not api_key:
+        return formatting.output("TV Tonight", ["Error: No API Key set"])
+
+    sickbeard_url = "http://{}/api/{}/?cmd=future&sort=date&type=today".format(api_ip, api_key)
+    sickbeard_data = http.get_json(sickbeard_url)['data']['today']
+
+    results = {}
+    output = []
+
+    for show in sickbeard_data:
+        showinfo = '{} ({})'.format(show['show_name'], show['network'])
+
+        airtime = show['airs'].split(' ', 1)[1]
+        try:
+            airtime = datetime.datetime.strptime(airtime, '%H:%M').strftime('%I:%M %p')
+        except:
+            pass
+        if airtime in results:
+            results[airtime].append(showinfo)
+        else:
+            results[airtime] = showinfo
+
+    for t in sorted(results.keys()):
+	output.append('\x02{}\x02: {}'.format(t, results[t]))
+    if results == {}:
+        return formatting.output("TV Tonight", ["No shows airing tonight"])
+
+    return formatting.output("TV Tonight", output)
 
 
 id_re = re.compile("tt\d+")
