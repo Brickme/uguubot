@@ -164,7 +164,7 @@ def hashtag(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
                 say("\x02%s\x02 %s" % (factoid_id, result))
 
 @hook.command(r'keys', autohelp=False)
-@hook.command(r'key')
+@hook.command(r'key', autohelp=False)
 @hook.command(autohelp=False)
 def hashes(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
     "hashes -- Shows hash names for all known hashes."
@@ -176,6 +176,7 @@ def hashes(inp, say=None, db=None, bot=None, me=None, conn=None, input=None):
     rows = db.execute(search).fetchall()
 
     if rows:
-	url = web.isgd(web.haste(", ".join(tuple(x[0] for x in rows))))
+#	url = web.isgd(web.haste(", ".join(tuple(x[0] for x in rows))))
+	url = web.haste(", ".join(tuple(x[0] for x in rows)))
 	return "{}: {}".format(url, ", ".join(tuple(x[0] for x in rows)))
     else: return "No results."
