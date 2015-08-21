@@ -97,11 +97,8 @@ def seen_sieve(paraml, input=None, db=None, bot=None, notice=None, say=None):
 def seen(inp, nick='', chan='', db=None, input=None, conn=None, notice=None):
     "seen <nick> -- Tell when a nickname was last in active in one of this bot's channels."
 
-    if input.conn.nick.lower() == inp.lower():
+    if inp.lower() == input.conn.nick.lower() or inp.lower() == nick.lower():
         phrase = datafiles.get_phrase(nick,insults,nick,conn,notice,chan)
-        return phrase
-
-    if inp.lower() == nick.lower():
         return phrase
 
     #if not re.match("^[A-Za-z0-9_|.\-\]\[]*$", inp.lower()):
@@ -109,7 +106,9 @@ def seen(inp, nick='', chan='', db=None, input=None, conn=None, notice=None):
 
     if not db_ready: db_init(db)
 
-    last_seen = db.execute("select name, time, quote from seen where name like ? and chan = ?", (inp, chan)).fetchone()
+    db_results = db.execute("select name, time, quote, chan from seen where name like ?", (inp,))
+    for row in db_results:
+        last_seen = row
 
     if last_seen:
         reltime = timesince.timesince(last_seen[1])
@@ -119,6 +118,21 @@ def seen(inp, nick='', chan='', db=None, input=None, conn=None, notice=None):
             return '{} was last seen {} ago: * {} {}'.format(inp, reltime, inp,
                                                              last_seen[2][8:-1])
         else:
-            return '{} was last seen {} ago saying: {}'.format(inp, reltime, last_seen[2])
+            return '{} was last seen {} ago in {} saying: {}'.format(inp, reltime, last_seen[3], last_seen[2])
     else:
         return "I've never seen {} talking in this channel.".format(inp)
+
+@hook.command(adminonly=True)
+def resetseen(inp, chan='', db=None, notice=None):
+    "resetseen <nick> -- Resets a user's last spoken line"
+
+    resetseendb(inp,chan,db)
+    notice('Last spoken text reset for {}.'.format(inp))
+
+def resetseendb(inp, chan='', db=None):
+    print('Last spoken text reset for {}.'.format(inp))
+    if not db_ready: db_init(db)
+
+    seen_host = db.execute("select host from seen where name like ?", (inp,)).fetchone()[0]
+    db.execute("insert or replace into seen(name, time, quote, chan, host) values(?,?,?,?,?)", (inp, time.time(), 'Theres Nothing Finer Than Scott Steiner', chan, seen_host))
+    db.commit()

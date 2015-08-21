@@ -1,5 +1,6 @@
 import re
 from util import hook, database, user
+import seen
 
 global userlist
 userlist = {}
@@ -34,13 +35,16 @@ def highlight_sieve(bot, input, func, kind, args):
     except: return input
     inp = set(re.sub('[#~&@+%,\.]', '', input.msg.lower()).split(' '))
     if len(users & inp) > 3: 
+        print('Mass highlight detected')
         globaladmin = user.is_globaladmin(input.mask, input.chan, bot) 
         db = bot.get_db_connection(input.conn)
         channeladmin = user.is_channeladmin(input.mask, input.chan, db)
         if not globaladmin and not channeladmin:
             if len(users & inp) > 5: 
-                input.conn.send(u"MODE {} +b *!*{}".format(input.chan, user.format_hostmask(input.mask)))
+                input.conn.send(u"MODE {} -v+b {} *!*@{}".format(input.chan, input.nick, input.host))
             input.conn.send(u"KICK {} {} :MASSHIGHLIGHTING FAGGOT GET #REKT".format(input.chan, input.nick))
+            print('Last spoken text reset for {}.'.format(input.nick))
+            seen.resetseendb(input.nick, input.chan, db)
     return input
 
 
