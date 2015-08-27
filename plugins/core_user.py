@@ -1,4 +1,4 @@
-from util import hook, database, http
+from util import hook, database, http, formatting
 import random
 
 # RATINGS
@@ -329,45 +329,47 @@ def steam(inp, nick=None, conn=None, chan=None,db=None, notice=None):
     "steam <steam | @ person> -- Shows a users steam information."
 	
     field_name = 'steam'
-    field_description = 'Steam profile link'
+    field_title = 'Steam'
+    field_description = 'profile link'
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
         result = database.get(db,'users',field_name,'nick',nick)
         if result:
-            return '{}: {}'.format(nick,result)
+            return formatting.output(field_title, ['{}: {}'.format(nick,result)])
         else:
             if not '@' in inp: notice(steam.__doc__)
-            return 'No {} saved for {}.'.format(field_description, nick)
+            return formatting.output(field_title, ['No {} {} saved for {}.'.format(field_title, field_description, nick)])
     elif 'del' in inp:
         database.set(db,'users',field_name,'','nick',nick)
-        notice("Deleted your {}.".format(field_description))
+        notice("Deleted your {} {}.".format(field_title, field_description))
     else:
         database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
-        notice("Saved your {}.".format(field_description))
+        notice("Saved your {} {}.".format(field_title, field_description))
     return
 
 @hook.command(autohelp=False)
 def xbl(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "xbl <xbl | @ person> -- Shows a user's Xbox Live information."
+    "xbl <xbl | @ person> -- Shows a user's Xbox Live ID."
 	
     field_name = 'xbl'
-    field_description = 'Xbox Live ID'
+    field_title = 'Xbox Live'
+    field_description = 'ID'
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
         result = database.get(db,'users',field_name,'nick',nick)
         if result:
-            return '{}: {}'.format(nick,result)
+            return formatting.output(field_title, ['{}: {}'.format(nick,result)])
         else:
             if not '@' in inp: notice(xbl.__doc__)
-            return 'No {} saved for {}.'.format(field_description, nick)
+            return formatting.output(field_title, ['No {} {} saved for {}.'.format(field_title, field_description, nick)])
     elif 'del' in inp:
         database.set(db,'users',field_name,'','nick',nick)
-        notice("Deleted your {}.".format(field_description))
+        notice("Deleted your {} {}.".format(field_title, field_description))
     else:
         database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
-        notice("Saved your {}.".format(field_description))
+        notice("Saved your {} {}.".format(field_title, field_description))
     return
 
 @hook.command(autohelp=False)
@@ -375,22 +377,23 @@ def psn(inp, nick=None, conn=None, chan=None,db=None, notice=None):
     "psn <psn | @ person> -- Shows a user's Playstation Network ID."
 	
     field_name = 'psn'
+    field_title = 'PSN'
     field_description = 'Playstation Network ID'
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
         result = database.get(db,'users',field_name,'nick',nick)
         if result:
-            return '{}: {}'.format(nick,result)
+            return formatting.output(field_title, ['{}: {}'.format(nick,result)])
         else:
             if not '@' in inp: notice(psn.__doc__)
-            return 'No {} saved for {}.'.format(field_description, nick)
+            return formatting.output(field_title, ['No {} {} saved for {}.'.format(field_title, field_description, nick)])
     elif 'del' in inp:
         database.set(db,'users',field_name,'','nick',nick)
-        notice("Deleted your {}.".format(field_description))
+        notice("Deleted your {} {}.".format(field_title, field_description))
     else:
         database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
-        notice("Saved your {}.".format(field_description))
+        notice("Saved your {} {}.".format(field_title, field_description))
     return
 
 @hook.command(autohelp=False)
@@ -398,23 +401,42 @@ def nintendo(inp, nick=None, conn=None, chan=None,db=None, notice=None):
     "nintendo <nintendo | @ person> -- shows a user's Nintendo friend code."
 	
     field_name = 'nintendo'
-    field_description = 'Nintendo Friend Code'
+    field_title = 'Nintendo'
+    field_description = 'Friend Code'
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
         result = database.get(db,'users',field_name,'nick',nick)
         if result:
-            return '{}: {}'.format(nick,result)
+            return formatting.output(field_title, ['{}: {}'.format(nick,result)])
         else:
             if not '@' in inp: notice(nintendo.__doc__)
-            return 'No {} saved for {}.'.format(field_description, nick)
+            return formatting.output(field_title, ['No {} {} saved for {}.'.format(field_title, field_description, nick)])
     elif 'del' in inp:
         database.set(db,'users',field_name,'','nick',nick)
-        notice("Deleted your {}.".format(field_description))
+        notice("Deleted your {} {}.".format(field_title, field_description))
     else:
         database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
-        notice("Saved your {}.".format(field_description))
+        notice("Saved your {} {}.".format(field_title, field_description))
     return
+
+@hook.command(autohelp=False)
+def vidya(inp, nick=None, conn=None, chan=None,db=None, notice=None):
+    "vidya <vidya | @ person> -- shows a user's video game contacts."
+    output = []
+
+    if '@' in inp: nick = inp.split('@')[1].strip()
+
+    fields = {'Steam': 'steam', 'XBL': 'xbl', 'PSN': 'psn', 'Nintendo Friend Code': 'nintendo'}
+    output_fields = ['Steam', 'XBL', 'PSN', 'Nintendo Friend Code']
+    for field in output_fields:
+        result = database.get(db,'users',fields[field],'nick',nick)
+        if result:
+            output.append('{}: {}'.format(field, result).rstrip())
+        else:
+            output.append('{}: [N/A]'.format(field))
+
+    return formatting.output('vidya', output)
 
     ###Old
     #result = unicode(result, "utf8").replace('flight ','')
