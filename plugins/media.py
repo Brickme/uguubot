@@ -58,7 +58,10 @@ def get_episodes_for_series(seriesname, bot):
         res["ended"] = True
 
     res["episodes"] = series.xpath('//Episode')
-    res["airtime"] = series.xpath('//Airs_Time/text()')[0]
+    try:
+        res["airtime"] = series.xpath('//Airs_Time/text()')[0]
+    except:
+        res["airtime"] = 'N/A'
     res["name"] = series_name
     return res
 
