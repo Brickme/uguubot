@@ -10,7 +10,7 @@ import random
 ### Battlestations
 @hook.command(autohelp=False)
 def battlestation(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "battlestation <url | @ person> -- Shows a users Battlestation."
+    "battlestation <url | @ person> -- shows a user's Battlestation."
     if inp:
         if  "http" in inp:
             database.set(db,'users','battlestation',inp.strip(),'nick',nick)
@@ -34,7 +34,7 @@ def battlestation(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 ### Desktops
 @hook.command(autohelp=False)
 def desktop(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "desktop http://url.to/desktop | @ nick -- Shows a users Desktop."
+    "desktop http://url.to/desktop | @ nick -- Shows a user's Desktop."
     if inp:
         if  "http" in inp:
             database.set(db,'users','desktop',inp.strip(),'nick',nick)
@@ -60,7 +60,7 @@ def desktop(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 @hook.command('intro', autohelp=False)
 @hook.command(autohelp=False)
 def greeting(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "greet <message | @ person> -- Shows a users Greeting."
+    "greet <message | @ person> -- Shows a user's Greeting."
     try:
         if not inp or '@' in inp:
             if '@' in inp: nick = inp.split('@')[1].strip()
@@ -83,7 +83,7 @@ def greeting(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 ### Waifu & Husbando
 @hook.command(autohelp=False)
 def waifu(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "waifu <waifu | @ person> -- Shows a users Waifu or Husbando."
+    "waifu <waifu | @ person> -- Shows a user's Waifu or Husbando."
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
@@ -104,7 +104,7 @@ def waifu(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 
 @hook.command(autohelp=False)
 def husbando(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "husbando <husbando | @ person> -- Shows a users husbando or Husbando."
+    "husbando <husbando | @ person> -- Shows a user's husbando or Husbando."
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
@@ -124,7 +124,7 @@ def husbando(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 
 @hook.command(autohelp=False)
 def imouto(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "imouto <imouto | @ person> -- Shows a users imouto or Husbando."
+    "imouto <imouto | @ person> -- Shows a user's imouto or Husbando."
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
@@ -144,7 +144,7 @@ def imouto(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 
 @hook.command(autohelp=False)
 def daughteru(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "daughteru <daughteru | @ person> -- Shows a users daughteru."
+    "daughteru <daughteru | @ person> -- Shows a user's daughteru."
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
@@ -166,7 +166,7 @@ def daughteru(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 ### Desktops
 @hook.command(autohelp=False)
 def birthday(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "birthday <01/01/2001> | <@ person> -- Shows a users Birthday."
+    "birthday <01/01/2001> | <@ person> -- Shows a user's Birthday."
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
@@ -219,7 +219,7 @@ def horoscope(inp, db=None, notice=None, nick=None):
 
 @hook.command(autohelp=False)
 def homescreen(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "homescreen <url | @ person> -- Shows a users homescreen."
+    "homescreen <url | @ person> -- Shows a user's homescreen."
     if "http" in inp:
         database.set(db,'users','homescreen',inp.strip(),'nick',nick)
         notice("Saved your homescreen.")
@@ -243,7 +243,7 @@ def homescreen(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 
 @hook.command(autohelp=False)
 def snapchat(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "snapchat <snapchatname | @ person> -- Shows a users snapchat name."
+    "snapchat <snapchatname | @ person> -- Shows a user's snapchat name."
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
@@ -263,7 +263,7 @@ def snapchat(inp, nick=None, conn=None, chan=None,db=None, notice=None):
         
 @hook.command(autohelp=False)
 def myanime(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "myanime <mal name | @ person> -- Shows a users myanimelist profile."
+    "myanime <mal name | @ person> -- Shows a user's myanimelist profile."
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
@@ -283,7 +283,7 @@ def myanime(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 
 @hook.command(autohelp=False)
 def mymanga(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "mymanga <mal name | @ person> -- Shows a users myanimelist profile."
+    "mymanga <mal name | @ person> -- Shows a user's myanimelist profile."
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
@@ -303,7 +303,7 @@ def mymanga(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 
 @hook.command(autohelp=False)
 def selfie(inp, nick=None, conn=None, chan=None,db=None, notice=None):
-    "selfie <url | @ person> -- Shows a users selfie."
+    "selfie <url | @ person> -- Shows a user's selfie."
     if inp:
         if  "http" in inp:
             database.set(db,'users','selfie',inp.strip(),'nick',nick)
@@ -327,23 +327,94 @@ def selfie(inp, nick=None, conn=None, chan=None,db=None, notice=None):
 @hook.command(autohelp=False)
 def steam(inp, nick=None, conn=None, chan=None,db=None, notice=None):
     "steam <steam | @ person> -- Shows a users steam information."
+	
+    field_name = 'steam'
+    field_description = 'Steam profile link'
 
     if not inp or '@' in inp:
         if '@' in inp: nick = inp.split('@')[1].strip()
-        result = database.get(db,'users','steam','nick',nick)
+        result = database.get(db,'users',field_name,'nick',nick)
         if result:
             return '{}: {}'.format(nick,result)
         else:
             if not '@' in inp: notice(steam.__doc__)
-            return 'No steam information saved for {}.'.format(nick)
+            return 'No {} saved for {}.'.format(field_description, nick)
     elif 'del' in inp:
-        database.set(db,'users','steam','','nick',nick)
-        notice("Deleted your steam information.")
+        database.set(db,'users',field_name,'','nick',nick)
+        notice("Deleted your {}.".format(field_description))
     else:
-        database.set(db,'users','steam','{} '.format(inp.strip().encode('utf8')),'nick',nick)
-        notice("Saved your steam information.")
+        database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
+        notice("Saved your {}.".format(field_description))
     return
 
+@hook.command(autohelp=False)
+def xbl(inp, nick=None, conn=None, chan=None,db=None, notice=None):
+    "xbl <xbl | @ person> -- Shows a user's Xbox Live information."
+	
+    field_name = 'xbl'
+    field_description = 'Xbox Live ID'
+
+    if not inp or '@' in inp:
+        if '@' in inp: nick = inp.split('@')[1].strip()
+        result = database.get(db,'users',field_name,'nick',nick)
+        if result:
+            return '{}: {}'.format(nick,result)
+        else:
+            if not '@' in inp: notice(xbl.__doc__)
+            return 'No {} saved for {}.'.format(field_description, nick)
+    elif 'del' in inp:
+        database.set(db,'users',field_name,'','nick',nick)
+        notice("Deleted your {}.".format(field_description))
+    else:
+        database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
+        notice("Saved your {}.".format(field_description))
+    return
+
+@hook.command(autohelp=False)
+def psn(inp, nick=None, conn=None, chan=None,db=None, notice=None):
+    "psn <psn | @ person> -- Shows a user's Playstation Network ID."
+	
+    field_name = 'psn'
+    field_description = 'Playstation Network ID'
+
+    if not inp or '@' in inp:
+        if '@' in inp: nick = inp.split('@')[1].strip()
+        result = database.get(db,'users',field_name,'nick',nick)
+        if result:
+            return '{}: {}'.format(nick,result)
+        else:
+            if not '@' in inp: notice(psn.__doc__)
+            return 'No {} saved for {}.'.format(field_description, nick)
+    elif 'del' in inp:
+        database.set(db,'users',field_name,'','nick',nick)
+        notice("Deleted your {}.".format(field_description))
+    else:
+        database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
+        notice("Saved your {}.".format(field_description))
+    return
+
+@hook.command(autohelp=False)
+def nintendo(inp, nick=None, conn=None, chan=None,db=None, notice=None):
+    "nintendo <nintendo | @ person> -- shows a user's Nintendo friend code."
+	
+    field_name = 'nintendo'
+    field_description = 'Nintendo Friend Code'
+
+    if not inp or '@' in inp:
+        if '@' in inp: nick = inp.split('@')[1].strip()
+        result = database.get(db,'users',field_name,'nick',nick)
+        if result:
+            return '{}: {}'.format(nick,result)
+        else:
+            if not '@' in inp: notice(nintendo.__doc__)
+            return 'No {} saved for {}.'.format(field_description, nick)
+    elif 'del' in inp:
+        database.set(db,'users',field_name,'','nick',nick)
+        notice("Deleted your {}.".format(field_description))
+    else:
+        database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
+        notice("Saved your {}.".format(field_description))
+    return
 
     ###Old
     #result = unicode(result, "utf8").replace('flight ','')
