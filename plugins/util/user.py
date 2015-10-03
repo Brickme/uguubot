@@ -6,7 +6,7 @@ global userlist
 def format_hostmask(inp):
     "format_hostmask -- Returns a nicks userhost"
     try:
-        return inp.split('@')[1]
+        return '*!*@{}'.format(inp.split('@')[1])
     except:
         return inp
 
