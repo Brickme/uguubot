@@ -413,7 +413,7 @@ def mode_cmd_channel(mode, text, inp, chan, conn, notice):
         notice(u"Attempting to {} {}...".format(text, channel))
         conn.send(u"MODE {} {}".format(channel, mode))
 
-@hook.command
+@hook.command(permissions=["op_topic", "op"], channeladminonly=True)
 def invite(inp, conn=None, chan=None, notice=None):
     """invite [channel] <user> -- Makes the bot invite <user> to [channel].
     If [channel] is blank the bot will invite <user> to
