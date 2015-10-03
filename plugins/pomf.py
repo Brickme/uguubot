@@ -18,7 +18,7 @@ from util import hook, http, formatting
 def pomf(url):
 	"pomf <url> -- Downloads file and uploads it"
 
-	return formatting.output('pomf', [upload(url)])
+	return formatting.output('pomf', [download(url)])
 
 @hook.command("pr", adminonly=True)
 @hook.command("premember", adminonly=True)
@@ -43,7 +43,8 @@ def pomfadd(inp, chan=None, nick=None, notice=None, db=None, say=None):
 	datafiles.add(strsave, notice)
 	return(formatting.output('pomf', ['{} remembered as {}'.format(pomfurl, dfile)]))
 
-def upload(url):
+def download(url):
+	print('downloading url {}'.format(url))
 	cclive = subprocess.Popen("cclive --support | xargs | tr ' ' '|'", stdout=subprocess.PIPE, shell=True)
 	(cclive_formats, err) = cclive.communicate()
 
@@ -72,6 +73,13 @@ def upload(url):
 			temp.write(content)
 			file = temp.name
 
+		return(upload(file))
+	except Exception as e:
+		return "Error: {}".format(e)
+
+def upload(file):
+	print('uploading file {}'.format(file))
+	try:
 		fh = open(file, "rb")
 		fh.seek(0)
 
