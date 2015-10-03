@@ -1,5 +1,5 @@
 import re
-from util import hook, http
+from util import hook, http, formatting
 from HTMLParser import HTMLParser
 
 twitch_re = (r'(.*:)//(twitch.tv|www.twitch.tv)(:[0-9]+)?(.*)', re.I)
@@ -50,7 +50,7 @@ def twitch_url(match):
     if not test(location):
         print "Not a valid username"
         return None
-    return twitch_lookup(location)
+    return formatting.output('Twitch', twitch_lookup(location))
 
 
 # @hook.command('twitchviewers')
@@ -61,7 +61,7 @@ def twitch(inp):
         location = inp
     else:
         return "Not a valid channel name."
-    return twitch_lookup(location).split("(")[-1].split(")")[0].replace("Online now! ", "")
+    return formatting.output('Twitch', twitch_lookup(location))
 
 
 def twitch_lookup(location):
@@ -80,23 +80,37 @@ def twitch_lookup(location):
         if type == "b":  # I haven't found an API to retrieve broadcast info
             soup = http.get_soup("http://twitch.tv/" + location)
             title = soup.find('span', {'class': 'real_title js-title'}).text
-            playing = soup.find('a', {'class': 'game js-game'}).text
+            game = soup.find('a', {'class': 'game js-game'}).text
             views = soup.find('span', {'id': 'views-count'}).text + " view"
             views = views + "s" if not views[0:2] == "1 " else views
-            return h.unescape(fmt.format(title, channel, playing, views))
+            return [channel, title, game, views]
         elif type == "c":
             data = http.get_json("https://api.twitch.tv/kraken/videos/" + type + id)
             title = data['title']
-            playing = data['game']
+            game = data['game']
             views = str(data['views']) + " view"
             views = views + "s" if not views[0:2] == "1 " else views
-            return h.unescape(fmt.format(title, channel, playing, views))
+            return [channel, title, game, views]
     else:
         try:
-            data = http.get_json("https://api.twitch.tv/kraken/channels/" + channel)
+            data = http.get_json("https://api.twitch.tv/kraken/streams/" + channel)['stream']
         except:
             return
-        title = data['status']
-        playing = data['game']
-        viewers = "\x034\x02Offline\x02\x0f"
-        return h.unescape(fmt.format(title, channel, playing, viewers))
+	if data is not None:
+		channel = data['channel']['display_name']
+	        title = data['channel']['status']
+	        game = data['channel']['game']
+	        status = '\x0309\x02Online\x02\x0f'
+		viewers = '{} viewers'.format(data['viewers'])
+	        return [channel, title, game, viewers, status]
+	else:
+	        try:
+	            data = http.get_json("https://api.twitch.tv/kraken/channels/" + channel)
+	        except:
+	            return
+		channel = data['channel']['display_name']
+	        title = data['status']
+	        game = data['game']
+	        status = "\x034\x02Offline\x02\x0f"
+	        return [channel, title, game, status]
+
