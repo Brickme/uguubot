@@ -54,7 +54,6 @@ def get_phrase(inp,attack,nick,conn,notice,chan):
     values = {"user": target,"user_uppercase": target.upper(),"nick": conn.nick,"channel": chan}
     #if inp.split(" ")[-1].isdigit: phrase = attack[int(inp.split(" ")[-1].strip())-1]
     #else: 
-    print(random.choice(attack))
     return random.choice(attack).format(**values).decode('utf-8', "ignore")
 
 
