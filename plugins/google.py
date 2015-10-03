@@ -93,8 +93,5 @@ def lmgtfy(inp, bot=None):
 
     link = "http://lmgtfy.com/?q=%s" % http.quote_plus(inp)
 
-    try:
-        return web.isgd(link)
-    except (web.ShortenError, http.HTTPError):
-        return link
+    return web.isgd(link)
 
