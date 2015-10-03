@@ -11,6 +11,7 @@ search_api_url = base_url + 'search?part=id,snippet'
 api_url = base_url + 'videos?part=snippet,statistics,contentDetails'
 video_url = "http://youtu.be/%s"
 
+cache = {}
 
 def plural(num=0, text=''):
     return "{:,} {}{}".format(num, text, "s"[num==1:])
@@ -86,9 +87,16 @@ def get_video_description(key,video_id):
 
 @hook.regex(*youtube_re)
 def youtube_url(match,bot=None):
-    key = bot.config.get("api_keys", {}).get("google")
+    match = match.group(1)
+    if match in cache:
+      print('{} found in {}'.format(match, cache))
+      if (time.time() < (cache[match] + 60)): return
+    else:
+      print('{} not found in {}'.format(match, cache))
+    cache[match] = time.time()
 
-    return get_video_description(key,match.group(1))
+    key = bot.config.get("api_keys", {}).get("google")
+    return get_video_description(key,match)
 
 
 @hook.command('yt')

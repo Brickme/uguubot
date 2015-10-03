@@ -2,6 +2,7 @@ from util import hook, http, database, urlnorm, formatting
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 import re
+from time import time
 
 from urllib import FancyURLopener
 import urllib2
@@ -15,10 +16,15 @@ opener = urlopener()
 
 link_re = (r'((https?://([-\w\.]+)+(:\d+)?(/([\S/_\.]*(\?\S+)?)?)?))', re.I)
 
+cache = {}
+
 @hook.regex(*link_re)
 def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
     global trimlength
     url = match.group(1).replace('https:','http:')
+    if url in cache:
+      if (time() < (cache[url] + 60)): return
+    cache[url] = time()
 
     if '127.0.0.1' in url or 'localhost' in url.lower(): return
     
