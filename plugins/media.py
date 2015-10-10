@@ -256,10 +256,10 @@ def tv_tonight(inp,bot=None):
         if airtime in results:
             results[airtime].append(showinfo)
         else:
-            results[airtime] = showinfo
+            results[airtime] = [showinfo]
 
     for t in sorted(results.keys()):
-	output.append('\x02{}\x02: {}'.format(t, results[t]))
+	output.append('\x02{}\x02: {}'.format(t, ', '.join(results[t])))
     if results == {}:
         return formatting.output("TV Tonight", ["No shows airing tonight"])
 
