@@ -57,7 +57,7 @@ def ignoresieve(bot, input, func, type, args):
     # if user.is_admin(mask,chan,db,bot): return input
 
     if ignorelist and user.compare_hostmasks(mask, ignorelist): return None
-    if ignorelist and user.compare_hostmasks(mask, globalignorelist): return None
+    if globalignorelist and user.compare_hostmasks(mask, globalignorelist): return None
 
     return input
 
