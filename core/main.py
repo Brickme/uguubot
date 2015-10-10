@@ -164,7 +164,7 @@ def main(conn, out):
         if inp.chan == inp.nick:  # private message, no command prefix
             prefix = '^(?:[{}]?|'.format(command_prefix)
         else:
-	    if inp.chan == '#/jp/shows': command_prefix = '!+'
+	    if inp.chan == '#/jp/shows': command_prefix = '.,+'
             prefix = '^(?:[{}]|'.format(command_prefix)
 
         command_re = prefix + inp.conn.nick
