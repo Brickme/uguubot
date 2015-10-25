@@ -1,4 +1,4 @@
-from util import hook, http, web, database
+from util import hook, http, web, database, formatting
 
 
 def get_weather(location):
@@ -95,7 +95,7 @@ def weather(inp, nick=None, reply=None, db=None, notice=None):
     try:
         data = get_weather('%s' % location)
     except KeyError:
-        return "Could not get weather for that location."
+        return formatting.output("Weather", ["Could not get weather for that location."])
 
     if location and save: database.set(db,'users','location',location,'nick',nick)
 
@@ -121,10 +121,10 @@ def weather(inp, nick=None, reply=None, db=None, notice=None):
         "_low_c": data['item']['forecast'][1]['low_c']
     }
  
-    reply("\x02{place}\x02 - \x02Current:\x02 {conditions}, {temp_f}F/{temp_c}C, Humidity: {humidity}%, " \
+    return formatting.output("weather", ["\x02{place}\x02 - \x02Current:\x02 {conditions}, {temp_f}F/{temp_c}C, Humidity: {humidity}%, " \
             "Wind: {wind_kph}KPH/{wind_mph}MPH {wind_text}, \x02Today:\x02 {forecast}, " \
             "High: {high_f}F/{high_c}C, Low: {low_f}F/{low_c}C. " \
             "\x02Tomorrow:\x02 {_forecast}, High: {_high_f}F" \
-            "/{_high_c}C, Low: {_low_f}F/{_low_c}C.".format(**weather_data))
+            "/{_high_c}C, Low: {_low_f}F/{_low_c}C.".format(**weather_data)])
 
     
