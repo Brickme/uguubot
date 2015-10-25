@@ -118,7 +118,7 @@ def tv(inp, bot=None):
         status = get_status(inp, bot)
 	if len(status) > 1:
 		(airdate, airtime, episode_number, episode_name, summary) = status
-		status = "Next Episode: {} {} ({})".format(airdate, airtime, episode_name)
+		status = u"Next Episode: {} {} ({})".format(airdate, airtime, episode_name)
 
     if len(status) == 1:
 	status = status[0]
@@ -127,7 +127,7 @@ def tv(inp, bot=None):
 	elif status == "noeps":
 		status = "No new episodes"
 
-    return formatting.output('TV', ['\x02{}\x02 ({}) \x02-\x02 \x02{}\x02 - {} - {}'.format(series_name, firstaired, status, tvdb_url, overview)])
+    return formatting.output('TV', [u'\x02{}\x02 ({}) \x02-\x02 \x02{}\x02 - {} - {}'.format(series_name, firstaired, status, tvdb_url, overview)])
 
 @hook.command('next')
 @hook.command
@@ -145,7 +145,7 @@ def tv_next(inp, bot=None):
     else:
 	(airdate, airtime, episode_number, episode_name, summary) = status
 
-	return formatting.output("TV", [u"\x02Next Episode Name\x02: {} ({})".format(episode_name, episode_number), "\x02Airdate\x02: {} {}".format(airdate, airtime), "\x02Summary\x02: {}".format(summary)])
+	return formatting.output("TV", [u"\x02Next Episode Name\x02: {} ({})".format(episode_name, episode_number), "\x02Airdate\x02: {} {}".format(airdate, airtime), u"\x02Summary\x02: {}".format(summary)])
 
 def get_status(seriesname, bot):
 
