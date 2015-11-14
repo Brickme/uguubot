@@ -9,7 +9,7 @@
 #########################################################################################
 
 import urllib2
-from util import hook, http
+from util import hook, http, formatting
 
 @hook.command(autohelp=False)
 def streaminfo(url, reply=None, bot=None):
@@ -18,6 +18,12 @@ def streaminfo(url, reply=None, bot=None):
 	streams = bot.config["plugins"]["streaminfo"].get("streams", {})
 	viewers_colors = bot.config["plugins"]["streaminfo"].get("colors", {25: '09',50: '08',75: '07'})
 
+	stream_info = getinfo(streams, viewers_colors)
+	for s in sorted(stream_info.keys()):
+	    reply(stream_info[s])
+
+def getinfo(streams, viewers_colors):
+	output = {}
 	for stream_name in streams:
 		stream_url = '{}/{}'.format(streams[stream_name]['root'], streams[stream_name]['stream'])
 		viewers_max = streams[stream_name]['viewers_max']
@@ -32,10 +38,7 @@ def streaminfo(url, reply=None, bot=None):
 			else:
 				info = http.get_xml(status).text
 				viewers_current = int(info.split(',')[9])
-		except Exception as e:
-			reply(u'\x02Streaminfo\x02 | {}: \x1f\x0311{}\x03\x1f | \x0304Error: {}'.format(stream_name, stream_url, e))
-			continue
-		try:
+
 			extra_info = ''
 			if 'extra_info' in streams[stream_name]:
 				extra_info = ' | {}'.format(streams[stream_name]['extra_info'])
@@ -52,8 +55,11 @@ def streaminfo(url, reply=None, bot=None):
 						viewers_color = i[1]
 						break
 			
-			viewers = ' | \x03{}{}/{}\x03'.format(viewers_color, viewers_current, viewers_max)
-			reply(u'\x02Streaminfo\x02 | {}: \x1f\x0311{}\x03\x1f{}{}'.format(stream_name, stream_url, viewers, extra_info))
-		except Exception as e:
-			print('\x02Streaminfo\x02 | {}: \x1f\x0311{}\x03\x1f | \x0304NOT LIVE [{}: {}]'.format(stream_name, stream_url, e, e.__doc__))
+			viewers = '\x03{}{}/{}\x03{}'.format(viewers_color, viewers_current, viewers_max, extra_info)
+			stream_url = '\x1f\x0311{}\x03\x1f'.format(stream_url)
 
+			output[stream_name] = formatting.output('streaminfo', [stream_name, stream_url, viewers])
+		except Exception as e:
+			error_info = '\x0304NOT LIVE [{}: {}]'.format(e, e.__doc__)
+			print(formatting.output('streaminfo', [stream_name, stream_url, error_info]))
+	return(output)
