@@ -64,7 +64,6 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 	except:
 		item = inp
 		quantity = 1
-	print(item)
 
 	if item not in items:
 		notice(formatting.output(db, input.chan, 'Good Boy Points', ['Item not available in store.']))
