@@ -9,7 +9,7 @@
 #########################################################################################
 
 from util import hook, formatting, database
-import random
+import random, json
 
 phrases = {
 	'great': ['You throw your piss jugs at mummy and scream about not getting you\'re tendies. She gives you {} to shut you up'],
@@ -72,6 +72,15 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 		if current >= price:
 			balance = current - price
 			database.set(db,'goodboy','gbp',unicode(balance),'nick',nick)
+
+			inventory = database.get(db,'goodboy','items','nick',nick) or "{}"
+			inventory = json.loads(inventory)
+			if item in inventory:	inventory[item] += quantity
+			else: 			inventory[item]  = quantity
+
+			inventory = json.dumps(inventory)
+			database.set(db,'goodboy','items',inventory,'nick',nick)
+
 			return formatting.output(db, input.chan, 'Good Boy Points', ['You purchased {} {} for {} good boy points.'.format(quantity, item, price), 'You now have {} good boy points!'.format(balance)])
 		else:
 			return formatting.output(db, input.chan, 'Good Boy Points', ['You can\'t afford that!  You have {} good boy points but need {} to buy {} {}!!'.format(current, price, quantity, item)])
@@ -86,6 +95,18 @@ def balance(inp, nick=None, db=None, input=None, notice=None):
 		current = database.get(db,'goodboy','gbp','nick',nick) or 0
 		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have {} good boy points.'.format(current)])
 	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently has {} good boy points.'.format(inp, current)])
+
+@hook.command(autohelp=False)
+def inventory(inp, nick=None, db=None, input=None, notice=None):
+	"inventory -- check your good boy points balance"
+
+	inventory = database.get(db,'goodboy','items','nick',inp)
+	if inventory is False:
+		nick = nick.lower()
+		inventory = database.get(db,'goodboy','items','nick',nick)
+		if inventory is False: inventory = None
+		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(inventory)])
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently have the following items: {}.'.format(inp, inventory)])
 
 @hook.command('items', autohelp=False)
 @hook.command(autohelp=False)
@@ -103,3 +124,18 @@ def store(inp, nick=None, db=None, input=None, notice=None):
 		
 	return formatting.output(db, input.chan, 'Good Boy Points Store', output)
 
+@hook.command(autohelp=False, adminonly=True)
+def gbpdebug(inp, db=None, input=None):
+	if inp == '': nick = input.nick.lower()
+	else: nick = inp.lower()
+	info = db.execute("SELECT nick, gbp, items, last from goodboy where nick = '{}'".format(nick))
+	for i in info:
+		print(i)
+
+@hook.command(autohelp=False, adminonly=True)
+def gbpdelete(inp, db=None, input=None):
+	if inp == '': nick = input.nick.lower()
+	else: nick = inp.lower()
+	db.execute("DELETE from goodboy WHERE nick = '{}';".format(nick))
+	db.commit()
+	gbpdebug(nick, db, input)
