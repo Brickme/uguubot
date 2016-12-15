@@ -80,9 +80,12 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 def balance(inp, nick=None, db=None, input=None, notice=None):
 	"balance -- check your good boy points balance"
 
-	nick = nick.lower()
-	current = database.get(db,'goodboy','gbp','nick',nick) or 0
-	return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have {} good boy points.'.format(current)])
+	current = database.get(db,'goodboy','gbp','nick',inp)
+	if current is False:
+		nick = nick.lower()
+		current = database.get(db,'goodboy','gbp','nick',nick) or 0
+		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have {} good boy points.'.format(current)])
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently has {} good boy points.'.format(inp, current)])
 
 @hook.command('items', autohelp=False)
 @hook.command(autohelp=False)
