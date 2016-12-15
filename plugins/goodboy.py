@@ -83,3 +83,20 @@ def balance(inp, nick=None, db=None, input=None, notice=None):
 	nick = nick.lower()
 	current = database.get(db,'users','gbp','nick',nick) or 0
 	return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have {} good boy points.'.format(current)])
+
+@hook.command('items', autohelp=False)
+@hook.command(autohelp=False)
+def store(inp, nick=None, db=None, input=None, notice=None):
+	"store -- lists items you can purchase with good boy points"
+
+	global items
+
+	if inp in items:
+		output = [inp, '{} gbp'.format(items[inp]['price']), items[inp]['description']]
+	else:
+		output = []
+		for item in items:
+			output.append('{}: {} gbp'.format(item, items[item]['price']))
+		
+	return formatting.output(db, input.chan, 'Good Boy Points Store', output)
+
