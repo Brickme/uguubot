@@ -19,10 +19,8 @@ def choose(inp):
 
     if ':' in inp: inp = inp.split(':')[1]
     
-    c = inp.split(', ')
+    c = re.split('(?:,\s*| or )|\s*\|\s*', inp)
     if len(c) == 1:
-        c = inp.split(' or ')
-        if len(c) == 1:
-            c = ['Yes','No']
+        c = ['Yes','No']
 
     return random.choice(c).strip()
