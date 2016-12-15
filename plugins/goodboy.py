@@ -1,7 +1,7 @@
 #########################################################################################
 # Name			Good Boy Points
 # Description		Gives the user good boy points for tendies and McRibs
-# Version		1.1 (2016-12-14)
+# Version		1.1.1 (2016-12-14)
 # Contact		ScottSteiner@irc.rizon.net
 # Website		https://github.com/ScottSteiner/uguubot
 # Copyright		2016, ScottSteiner <nothingfinerthanscottsteiner@gmail.com>
@@ -21,7 +21,7 @@ phrases = {
 
 @hook.command('piss', autohelp=False)
 @hook.command(autohelp=False)
-def behave(inp, nick=None, reply=None, db=None, notice=None, bot=None, input=None):
+def behave(inp, nick=None, db=None, input=None):
 	"behave -- be a good boy and earn tendies"
 
 	global phrases
@@ -37,10 +37,10 @@ def behave(inp, nick=None, reply=None, db=None, notice=None, bot=None, input=Non
 
 	if result > 10: phrase = random.choice(phrases['great'])
 	elif result > 0: phrase = random.choice(phrases['good'])
-	elif result == 0: random.choice(phrases['mediocre'])
-	elif result > -10: random.choice(phrases['bad'])
-	else: random.choice(phrases['awful'])
+	elif result == 0: phrase = random.choice(phrases['mediocre'])
+	elif result > -10: phrase = random.choice(phrases['bad'])
+	else: phrase = random.choice(phrases['awful'])
 
 	database.set(db,'users','gbp',unicode(current),'nick',nick)
-	return formatting.output(db, input.chan, 'Good Boy Points', [output, 'You now have {} good boy points!'.format(current)])
+	return formatting.output(db, input.chan, 'Good Boy Points', [phrase.format(abs(result)), 'You now have {} good boy points!'.format(current)])
 
