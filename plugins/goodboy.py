@@ -106,8 +106,9 @@ def inventory(inp, nick=None, db=None, input=None, notice=None):
 		inventory = database.get(db,'goodboy','items','nick',nick)
 		if inventory is False: inventory = None
 		else: inventory = json.loads(inventory)
-		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(inventory)])
-	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently have the following items: {}.'.format(inp, inventory)])
+		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(dict2str(inventory))])
+	inventory = json.loads(inventory)
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently have the following items: {}.'.format(inp, dict2str(inventory))])
 
 @hook.command('items', autohelp=False)
 @hook.command(autohelp=False)
@@ -140,3 +141,6 @@ def gbpdelete(inp, db=None, input=None):
 	db.execute("DELETE from goodboy WHERE nick = '{}';".format(nick))
 	db.commit()
 	gbpdebug(nick, db, input)
+
+def dict2str(dict):
+	return ', '.join('{} {}'.format(c,i) for i,c in sorted(dict.items()))
