@@ -105,6 +105,7 @@ def inventory(inp, nick=None, db=None, input=None, notice=None):
 		nick = nick.lower()
 		inventory = database.get(db,'goodboy','items','nick',nick)
 		if inventory is False: inventory = None
+		else: inventory = json.loads(inventory)
 		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(inventory)])
 	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently have the following items: {}.'.format(inp, inventory)])
 
