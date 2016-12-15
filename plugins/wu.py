@@ -52,7 +52,7 @@ def weatherunderground(inp, nick=None, reply=None, db=None, notice=None, bot=Non
 		if not inp:
 			loc = database.get(db,'users','location','nick',nick)
 			if not loc:
-				notice(weather.__doc__)
+				notice(weatherunderground.__doc__)
 				return
 		else:
 			if " save" in inp: 
