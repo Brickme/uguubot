@@ -31,7 +31,7 @@ def behave(inp, nick=None, db=None, input=None):
 
 	global phrases
         nick = nick.lower()
-	current = database.get(db,'users','gbp','nick',nick) or 0
+	current = database.get(db,'goodboy','gbp','nick',nick) or 0
 
 	command = input.trigger
 
@@ -46,7 +46,7 @@ def behave(inp, nick=None, db=None, input=None):
 	elif result > -10: phrase = random.choice(phrases['bad'])
 	else: phrase = random.choice(phrases['awful'])
 
-	database.set(db,'users','gbp',unicode(current),'nick',nick)
+	database.set(db,'goodboy','gbp',unicode(current),'nick',nick)
 	return formatting.output(db, input.chan, 'Good Boy Points', [phrase.format(abs(result)), 'You now have {} good boy points!'.format(current)])
 
 @hook.command()
@@ -55,7 +55,7 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 
 	global items
 	nick = nick.lower()
-	current = database.get(db,'users','gbp','nick',nick) or 0
+	current = database.get(db,'goodboy','gbp','nick',nick) or 0
 	current = int(current)
 
 	try:
@@ -71,7 +71,7 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 		price = items[item]['price'] * quantity
 		if current >= price:
 			balance = current - price
-			database.set(db,'users','gbp',unicode(balance),'nick',nick)
+			database.set(db,'goodboy','gbp',unicode(balance),'nick',nick)
 			return formatting.output(db, input.chan, 'Good Boy Points', ['You purchased {} {} for {} good boy points.'.format(quantity, item, price), 'You now have {} good boy points!'.format(balance)])
 		else:
 			return formatting.output(db, input.chan, 'Good Boy Points', ['You can\'t afford that!  You have {} good boy points but need {} to buy {} {}!!'.format(current, price, quantity, item)])
@@ -81,7 +81,7 @@ def balance(inp, nick=None, db=None, input=None, notice=None):
 	"balance -- check your good boy points balance"
 
 	nick = nick.lower()
-	current = database.get(db,'users','gbp','nick',nick) or 0
+	current = database.get(db,'goodboy','gbp','nick',nick) or 0
 	return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have {} good boy points.'.format(current)])
 
 @hook.command('items', autohelp=False)

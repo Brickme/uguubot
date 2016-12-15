@@ -1,5 +1,5 @@
 from util import hook
-import log
+import log, sys
 
 db_ready = False
 
@@ -9,6 +9,7 @@ def init(db):
         # db.execute("CREATE TABLE if not exists seen(name, time, quote, chan, host, primary key(name, chan))")
         db.execute("CREATE TABLE if not exists channels(chan NOT NULL, admins, permissions, ops, bans, disabled, ignored, badwords, flood, cmdflood, trimlength, autoop, votekick, voteban, prefix, primary key(chan));")
         db.execute("CREATE TABLE if not exists users(nick NOT NULL, mask, version, location, lastfm, fines, battlestation, desktop, horoscope, greeting, waifu, husbando, birthday, homescreen, snapchat, mal, selfie, primary key(nick));")
+        db.execute("CREATE TABLE if not exists goodboy(nick NOT NULL, last, gbp, items, primary key(nick));")
         db.commit()
         db_ready = True
 
@@ -28,13 +29,21 @@ def get(db,table,field,matchfield,matchvalue):
     init(db)
     matchvalue = matchvalue.encode('utf-8').lower()
     try:
-        #print "SELECT {} FROM {} WHERE {}='{}';".format(field,table,matchfield,matchvalue.lower())
         result = db.execute("SELECT {} FROM {} WHERE {}='{}';".format(field,table,matchfield,matchvalue)).fetchone()
-        if result: return result[0].encode('utf-8')
-        else: return False
-    except:
+        if result is None: return False
+        else: return result[0].encode('utf-8')
+    except Exception as e:
         log.log("***ERROR: SELECT {} FROM {} WHERE {}='{}';".format(field,table,matchfield,matchvalue))
 
+def all(db,table,matchfield,matchvalue):
+    init(db)
+    matchvalue = matchvalue.encode('utf-8').lower()
+    try:
+        result = db.execute("SELECT * FROM {};".format(table))
+        if result is None: return False
+        else: return result[0].encode('utf-8')
+    except Exception as e:
+        log.log("***ERROR: SELECT * FROM {} WHERE {}='{}';".format(table,matchfield,matchvalue))
 
 def set(db, table, field, value, matchfield, matchvalue):
     init(db)
@@ -49,15 +58,13 @@ def set(db, table, field, value, matchfield, matchvalue):
 
     try:
         if field_exists(db,table,matchfield,matchvalue):
-            # print "UPDATE {} SET {} = '{}' WHERE {} = '{}';".format(table,field,value,matchfield,matchvalue.encode('utf8').lower())
-            db.execute("UPDATE {} SET {} = '{}' WHERE {} = '{}';".format(table,field,value,matchfield,matchvalue))
+#            print "UPDATE {} SET {} = '{}' WHERE {} = '{}';".format(table,field,value,matchfield,matchvalue.encode('utf8').lower())
+            db.execute("UPDATE {} SET {} = ? WHERE {} = ?;".format(table,field,matchfield), (value,matchvalue))
         else: 
-            # print "INSERT INTO {} ({},{}) VALUES ('{}','{}');".format(table,field,matchfield,value,matchvalue.encode('utf8').lower())
-            db.execute("INSERT INTO {} ({},{}) VALUES ('{}','{}');".format(table,field,matchfield,value,matchvalue))
-    except:
-        #print "DB"
-        # print "UPDATE {} SET {} = '{}' WHERE {} = '{}';".format(table,field,value,matchfield,matchvalue.encode('utf8').lower())
-        db.execute("UPDATE {} SET {} = '{}' WHERE {} = '{}';".format(table,field,value,matchfield,matchvalue))
-        
+#            print "INSERT INTO {} ({},{}) VALUES ('{}','{}');".format(table,field,matchfield,value,matchvalue.encode('utf8').lower())
+            db.execute("INSERT INTO {} ({},{}) VALUES (?,?);".format(table,field,matchfield),(value,matchvalue))
+    except Exception as e:
+        print('Unable to update database: {}'.format(e))
     db.commit()
     return
+
