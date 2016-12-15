@@ -12,15 +12,15 @@ import urllib2
 from util import hook, http, formatting
 
 @hook.command(autohelp=False)
-def streaminfo(url, reply=None, bot=None):
+def streaminfo(url, chan=None, reply=None, bot=None, input=None, db=None):
 	'streaminfo -- Gets stream info'
 
 	streams = bot.config["plugins"]["streaminfo"].get("streams", {})
-	viewers_colors = bot.config["plugins"]["streaminfo"].get("colors", {25: '09',50: '08',75: '07'})
+	viewers_colors = bot.config["plugins"]["streaminfo"].get("colors", {"0": '09',"33": '08',"66": '07'})
 
 	stream_info = getinfo(streams, viewers_colors)
 	for s in sorted(stream_info.keys()):
-	    reply(stream_info[s])
+	    reply(formatting.output(db, input.chan, 'streaminfo', stream_info[s]))
 
 def getinfo(streams, viewers_colors):
 	output = {}
@@ -50,16 +50,17 @@ def getinfo(streams, viewers_colors):
 				viewers_color = '03'
 			else:
 				viewers_color = '04'
-				for i in sorted(viewers_colors.items()):
-					if ((100 * viewers_current) / viewers_max) < i[0]:
+				viewers_percent = (100 * viewers_current) / viewers_max
+				for i in sorted(viewers_colors.items(), reverse=True):
+					if (viewers_percent >= int(i[0])):
 						viewers_color = i[1]
 						break
 			
 			viewers = '\x03{}{}/{}\x03{}'.format(viewers_color, viewers_current, viewers_max, extra_info)
 			stream_url = '\x1f\x0311{}\x03\x1f'.format(stream_url)
 
-			output[stream_name] = formatting.output('streaminfo', [stream_name, stream_url, viewers])
+			output[stream_name] = [stream_name, stream_url, viewers]
 		except Exception as e:
 			error_info = '\x0304NOT LIVE [{}: {}]'.format(e, e.__doc__)
-			print(formatting.output('streaminfo', [stream_name, stream_url, error_info]))
+			print(formatting.output('', [], 'streaminfo', [stream_name, stream_url, error_info]))
 	return(output)
