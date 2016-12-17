@@ -91,11 +91,9 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 			balance = current - price
 			database.set(db,'goodboy','gbp',unicode(balance),'nick',nick)
 
-			inventory = database.get(db,'goodboy','items','nick',nick) or "{}"
-			inventory = json.loads(inventory)
+			inventory = user_inventory(nick, db)
 			if item in inventory:	inventory[item] += quantity
 			else: 			inventory[item]  = quantity
-
 			inventory = json.dumps(inventory)
 			database.set(db,'goodboy','items',inventory,'nick',nick)
 
@@ -105,7 +103,7 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 
 @hook.command(autohelp=False)
 def balance(inp, nick=None, db=None, input=None, notice=None):
-	"balance -- check your good boy points balance"
+	"balance -- check good boy points balance"
 
 	current = database.get(db,'goodboy','gbp','nick',inp)
 	if current is False:
@@ -116,21 +114,22 @@ def balance(inp, nick=None, db=None, input=None, notice=None):
 
 @hook.command(autohelp=False)
 def inventory(inp, nick=None, db=None, input=None, notice=None):
-	"inventory -- check your good boy points balance"
+	"inventory -- check inventory"
 
 	inventory = database.get(db,'goodboy','nick','nick',inp)
 	if inventory is False:
-		nick = nick.lower()
-		inventory = database.get(db,'goodboy','items','nick',nick)
-		if inventory is False: inventory = None
-		else: inventory = json.loads(inventory)
-		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(dict2str(inventory))])
+		inventory = user_inventory(nick, db)
+		if inventory is False:
+			return
+		if inventory is not None:
+			inventory = dict2str(inventory)
+		inventory = dict2str(inventory)
+		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(inventory)])
 	else:
-		inventory = database.get(db,'goodboy','items','nick',inp)
-		if inventory is None:
-			inventory = None
-		else:
-			inventory = json.loads(inventory)
+		inventory = user_inventory(inp, db)
+		if inventory is False:
+			return
+		if inventory is not None:
 			inventory = dict2str(inventory)
 		return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently has the following items: {}.'.format(inp, inventory)])
 
@@ -168,3 +167,13 @@ def delete(inp, db=None, input=None):
 
 def dict2str(dict):
 	return ', '.join('{} {}'.format(c,i) for i,c in sorted(dict.items()))
+
+def user_inventory(nick, db=None):
+	nick = nick.lower()
+
+	user_exists = database.get(db,'goodboy','nick','nick',nick.lower())
+	if user_exists == False: return False
+
+	inventory = database.get(db,'goodboy','items','nick',nick.lower())
+	if inventory in [False,None]: return None
+	return json.loads(inventory)
