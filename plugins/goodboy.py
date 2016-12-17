@@ -34,12 +34,17 @@ def behave(inp, nick=None, db=None, input=None, notice=None):
 
 	last_run = database.get(db,'goodboy','last','nick',nick) or 0
 	last_run = int(float(last_run))
-	next_run = last_run + 3600
-	next_run = int(next_run)
-	if time.time() <= next_run:
-		delay = next_run - time.time()
-		delay = timeformat.format_time(int(delay))
-		notice(formatting.output(db, input.chan, 'Good Boy Points', ['You\'re going too fast!  Try again in {}.'.format(delay)]))
+	next_run = last_run + (60 * .5)
+	if time.time() < next_run:
+		last_warning = database.get(db,'goodboy','warning','nick',nick) or 0
+		last_warning = int(float(last_warning))
+		next_warning = last_warning + (60 * .25)
+		next_warning = int(next_warning)
+		if time.time() > next_warning:
+			delay = next_run - time.time()
+			delay = timeformat.format_time(int(delay))
+			notice(formatting.output(db, input.chan, 'Good Boy Points', ['You\'re going too fast!  Try again in {}.'.format(delay)]))
+			database.set(db,'goodboy','warning',unicode(time.time()),'nick',nick)
 		return
 
 
@@ -143,7 +148,7 @@ def store(inp, nick=None, db=None, input=None, notice=None):
 def gbpdebug(inp, db=None, input=None):
 	if inp == '': nick = input.nick.lower()
 	else: nick = inp.lower()
-	info = db.execute("SELECT nick, gbp, items, last from goodboy where nick = '{}'".format(nick))
+	info = db.execute("SELECT nick, gbp, items, last, warning from goodboy where nick = '{}'".format(nick))
 	for i in info:
 		print(i)
 
