@@ -105,12 +105,15 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 def balance(inp, nick=None, db=None, input=None, notice=None):
 	"balance -- check good boy points balance"
 
-	current = database.get(db,'goodboy','gbp','nick',inp)
-	if current is False:
-		nick = nick.lower()
-		current = database.get(db,'goodboy','gbp','nick',nick) or 0
-		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have {} good boy points.'.format(current)])
-	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently has {} good boy points.'.format(inp, current)])
+	user_exists = database.get(db,'goodboy','nick','nick',inp)
+	if user_exists is False:
+		a=['You', 'have']
+	else:
+		nick = inp
+		a=[inp, 'has']
+	nick = nick.lower()
+	current = database.get(db,'goodboy','gbp','nick',nick) or 0
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} {} good boy points.'.format(a[0], a[1], current)])
 
 @hook.command(autohelp=False)
 def inventory(inp, nick=None, db=None, input=None, notice=None):
@@ -118,20 +121,16 @@ def inventory(inp, nick=None, db=None, input=None, notice=None):
 
 	inventory = database.get(db,'goodboy','nick','nick',inp)
 	if inventory is False:
-		inventory = user_inventory(nick, db)
-		if inventory is False:
-			return
-		if inventory is not None:
-			inventory = dict2str(inventory)
-		inventory = dict2str(inventory)
-		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(inventory)])
+		a=['You', 'have']
 	else:
-		inventory = user_inventory(inp, db)
-		if inventory is False:
-			return
-		if inventory is not None:
-			inventory = dict2str(inventory)
-		return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently has the following items: {}.'.format(inp, inventory)])
+		nick = inp
+		a=[inp, 'has']
+
+	inventory = user_inventory(nick, db)
+	if inventory is False: return
+	if inventory is not None: inventory = dict2str(inventory)
+
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} the following items: {}.'.format(a[0], a[1], inventory)])
 
 @hook.command('items', autohelp=False)
 @hook.command(autohelp=False)
