@@ -8,8 +8,8 @@
 # License		GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 #########################################################################################
 
-from util import hook, formatting, database
-import random, json
+from util import hook, formatting, database, timeformat
+import random, json, time
 
 phrases = {
 	'great': ['You throw your piss jugs at mummy and scream about not getting you\'re tendies. She gives you {} to shut you up'],
@@ -26,11 +26,23 @@ items = {
 
 @hook.command('piss', autohelp=False)
 @hook.command(autohelp=False)
-def behave(inp, nick=None, db=None, input=None):
+def behave(inp, nick=None, db=None, input=None, notice=None):
 	"behave -- be a good boy and earn tendies"
 
 	global phrases
         nick = nick.lower()
+
+	last_run = database.get(db,'goodboy','last','nick',nick) or 0
+	last_run = int(float(last_run))
+	next_run = last_run + 3600
+	next_run = int(next_run)
+	if time.time() <= next_run:
+		delay = next_run - time.time()
+		delay = timeformat.format_time(int(delay))
+		notice(formatting.output(db, input.chan, 'Good Boy Points', ['You\'re going too fast!  Try again in {}.'.format(delay)]))
+		return
+
+
 	current = database.get(db,'goodboy','gbp','nick',nick) or 0
 
 	command = input.trigger
@@ -47,6 +59,7 @@ def behave(inp, nick=None, db=None, input=None):
 	else: phrase = random.choice(phrases['awful'])
 
 	database.set(db,'goodboy','gbp',unicode(current),'nick',nick)
+	database.set(db,'goodboy','last',unicode(time.time()),'nick',nick)
 	return formatting.output(db, input.chan, 'Good Boy Points', [phrase.format(abs(result)), 'You now have {} good boy points!'.format(current)])
 
 @hook.command()
@@ -108,7 +121,7 @@ def inventory(inp, nick=None, db=None, input=None, notice=None):
 		else: inventory = json.loads(inventory)
 		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(dict2str(inventory))])
 	inventory = json.loads(inventory)
-	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently have the following items: {}.'.format(inp, dict2str(inventory))])
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently has the following items: {}.'.format(inp, dict2str(inventory))])
 
 @hook.command('items', autohelp=False)
 @hook.command(autohelp=False)
