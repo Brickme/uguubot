@@ -118,15 +118,21 @@ def balance(inp, nick=None, db=None, input=None, notice=None):
 def inventory(inp, nick=None, db=None, input=None, notice=None):
 	"inventory -- check your good boy points balance"
 
-	inventory = database.get(db,'goodboy','items','nick',inp)
+	inventory = database.get(db,'goodboy','nick','nick',inp)
 	if inventory is False:
 		nick = nick.lower()
 		inventory = database.get(db,'goodboy','items','nick',nick)
 		if inventory is False: inventory = None
 		else: inventory = json.loads(inventory)
 		return formatting.output(db, input.chan, 'Good Boy Points', ['You currently have the following items: {}.'.format(dict2str(inventory))])
-	inventory = json.loads(inventory)
-	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently has the following items: {}.'.format(inp, dict2str(inventory))])
+	else:
+		inventory = database.get(db,'goodboy','items','nick',inp)
+		if inventory is None:
+			inventory = None
+		else:
+			inventory = json.loads(inventory)
+			inventory = dict2str(inventory)
+		return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently has the following items: {}.'.format(inp, inventory)])
 
 @hook.command('items', autohelp=False)
 @hook.command(autohelp=False)
