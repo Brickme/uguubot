@@ -150,21 +150,21 @@ def store(inp, nick=None, db=None, input=None, notice=None):
 		
 	return formatting.output(db, input.chan, 'Good Boy Points Store', output)
 
-@hook.command(autohelp=False, adminonly=True)
-def gbpdebug(inp, db=None, input=None):
+@hook.command('gbpdebug', autohelp=False, adminonly=True)
+def debug(inp, db=None, input=None):
 	if inp == '': nick = input.nick.lower()
 	else: nick = inp.lower()
 	info = db.execute("SELECT nick, gbp, items, last, warning from goodboy where nick = '{}'".format(nick))
 	for i in info:
 		print(i)
 
-@hook.command(autohelp=False, adminonly=True)
-def gbpdelete(inp, db=None, input=None):
+@hook.command('gbpdelete', autohelp=False, adminonly=True)
+def delete(inp, db=None, input=None):
 	if inp == '': nick = input.nick.lower()
 	else: nick = inp.lower()
 	db.execute("DELETE from goodboy WHERE nick = '{}';".format(nick))
 	db.commit()
-	gbpdebug(nick, db, input)
+	debug(nick, db, input)
 
 def dict2str(dict):
 	return ', '.join('{} {}'.format(c,i) for i,c in sorted(dict.items()))
