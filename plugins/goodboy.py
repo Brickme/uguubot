@@ -48,7 +48,7 @@ def behave(inp, nick=None, db=None, input=None, notice=None):
 		return
 
 
-	current = database.get(db,'goodboy','gbp','nick',nick) or 0
+	balance = database.get(db,'goodboy','gbp','nick',nick) or 0
 
 	command = input.trigger
 
@@ -59,7 +59,7 @@ def behave(inp, nick=None, db=None, input=None, notice=None):
 
 	result = random.uniform(min,max)
 	result = int(result)
-	current = int(current) + result
+	balance = int(balance) + result
 
 	if result > 10: phrase = random.choice(phrases['great'])
 	elif result > 0: phrase = random.choice(phrases['good'])
@@ -67,9 +67,9 @@ def behave(inp, nick=None, db=None, input=None, notice=None):
 	elif result > -10: phrase = random.choice(phrases['bad'])
 	else: phrase = random.choice(phrases['awful'])
 
-	database.set(db,'goodboy','gbp',unicode(current),'nick',nick)
+	database.set(db,'goodboy','gbp',unicode(balance),'nick',nick)
 	database.set(db,'goodboy','last',unicode(time.time()),'nick',nick)
-	return formatting.output(db, input.chan, 'Good Boy Points', [phrase.format(abs(result)), 'You now have {} good boy points!'.format(current)])
+	return formatting.output(db, input.chan, 'Good Boy Points', [phrase.format(abs(result)), 'You now have {} good boy points!'.format(balance)])
 
 @hook.command()
 def buy(inp, nick=None, db=None, input=None, notice=None):
@@ -77,8 +77,8 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 
 	global items
 	nick = nick.lower()
-	current = database.get(db,'goodboy','gbp','nick',nick) or 0
-	current = int(current)
+	balance = database.get(db,'goodboy','gbp','nick',nick) or 0
+	balance = int(balance)
 
 	try:
 		item = ' '.join(input.inp_unstripped.split()[1:])
@@ -91,8 +91,8 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 		notice(formatting.output(db, input.chan, 'Good Boy Points', ['Item not available in store.']))
 	else:
 		price = items[item]['price'] * quantity
-		if current >= price:
-			balance = current - price
+		if balance >= price:
+			balance = balance - price
 			database.set(db,'goodboy','gbp',unicode(balance),'nick',nick)
 
 			inventory = user_inventory(nick, db)
@@ -103,7 +103,7 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 
 			return formatting.output(db, input.chan, 'Good Boy Points', ['You purchased {} {} for {} good boy points.'.format(quantity, item, price), 'You now have {} good boy points!'.format(balance)])
 		else:
-			return formatting.output(db, input.chan, 'Good Boy Points', ['You can\'t afford that!  You have {} good boy points but need {} to buy {} {}!!'.format(current, price, quantity, item)])
+			return formatting.output(db, input.chan, 'Good Boy Points', ['You can\'t afford that!  You have {} good boy points but need {} to buy {} {}!!'.format(balance, price, quantity, item)])
 
 @hook.command(autohelp=False)
 def balance(inp, db=None, input=None, notice=None):
