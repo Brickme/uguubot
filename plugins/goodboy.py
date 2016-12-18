@@ -34,7 +34,7 @@ def behave(inp, nick=None, db=None, input=None, notice=None):
 
 	last_run = database.get(db,'goodboy','last','nick',nick) or 0
 	last_run = int(float(last_run))
-	next_run = last_run + (60 * 3)
+	next_run = last_run + (60 * 60 * 3)
 	if time.time() < next_run:
 		last_warning = database.get(db,'goodboy','warning','nick',nick) or 0
 		last_warning = int(float(last_warning))
