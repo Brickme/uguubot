@@ -20,8 +20,8 @@ phrases = {
 }
 
 items = {
-	'tendies': {'price': 10, 'bonus': 0.05, 'description': 'Mommy\'s homemade tendies'},
-	'piss bottle': {'price': 50, 'bonus': 0.25, 'description': 'A 2 liter mountain dew bottle so you never have to leave the room while shitposting on pedochan.'}
+	'tendies': {'price': 10, 'bonus': 0.01, 'description': 'Mommy\'s homemade tendies'},
+	'piss bottle': {'price': 50, 'bonus': 0.05, 'description': 'A 2 liter mountain dew bottle so you never have to leave the room while shitposting on pedochan.'}
 }
 
 @hook.command('piss', autohelp=False)
@@ -29,16 +29,16 @@ items = {
 def behave(inp, nick=None, db=None, input=None, notice=None):
 	"behave -- be a good boy and earn tendies"
 
-	global phrases
+	global phrases, items
         nick = nick.lower()
 
 	last_run = database.get(db,'goodboy','last','nick',nick) or 0
 	last_run = int(float(last_run))
-	next_run = last_run + (60 * .5)
+	next_run = last_run + (60 * 3)
 	if time.time() < next_run:
 		last_warning = database.get(db,'goodboy','warning','nick',nick) or 0
 		last_warning = int(float(last_warning))
-		next_warning = last_warning + (60 * .25)
+		next_warning = last_warning + (60 * 1)
 		next_warning = int(next_warning)
 		if time.time() > next_warning:
 			delay = next_run - time.time()
@@ -52,9 +52,13 @@ def behave(inp, nick=None, db=None, input=None, notice=None):
 
 	command = input.trigger
 
-	if command == 'behave': result = random.randrange(-2,10)
-	else:			result = random.randrange(-10,20)
+	if command == 'behave': min,max = (-5,10)
+	else:			min,max = (-10,20)
+	min = min / (1+user_bonus(nick, db))
+	max = max * (1+user_bonus(nick, db))
 
+	result = random.uniform(min,max)
+	result = int(result)
 	current = int(current) + result
 
 	if result > 10: phrase = random.choice(phrases['great'])
@@ -116,6 +120,21 @@ def balance(inp, nick=None, db=None, input=None, notice=None):
 	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} {} good boy points.'.format(a[0], a[1], current)])
 
 @hook.command(autohelp=False)
+def bonus(inp, nick=None, db=None, input=None, notice=None):
+	"bonus -- check bonus percentage"
+
+	user_exists = database.get(db,'goodboy','nick','nick',inp)
+	if user_exists is False:
+		a=['You', 'have']
+	else:
+		nick = inp
+		a=[inp, 'has']
+	nick = nick.lower()
+	bonus = user_bonus(nick, db)
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} {}% bonus.'.format(a[0], a[1], bonus)])
+
+
+@hook.command(autohelp=False)
 def inventory(inp, nick=None, db=None, input=None, notice=None):
 	"inventory -- check inventory"
 
@@ -140,7 +159,7 @@ def store(inp, nick=None, db=None, input=None, notice=None):
 	global items
 
 	if inp in items:
-		output = [inp, '{} gbp'.format(items[inp]['price']), items[inp]['description']]
+		output = [inp, '{} gbp ({}% bonus)'.format(items[inp]['price'], items[inp]['bonus']), items[inp]['description']]
 	else:
 		output = []
 		for item in items:
@@ -150,6 +169,7 @@ def store(inp, nick=None, db=None, input=None, notice=None):
 
 @hook.command('gbpdebug', autohelp=False, adminonly=True)
 def debug(inp, db=None, input=None):
+	database.set(db,'goodboy','gbp','446','nick',input.nick.lower())
 	if inp == '': nick = input.nick.lower()
 	else: nick = inp.lower()
 	info = db.execute("SELECT nick, gbp, items, last, warning from goodboy where nick = '{}'".format(nick))
@@ -167,7 +187,7 @@ def delete(inp, db=None, input=None):
 def dict2str(dict):
 	return ', '.join('{} {}'.format(c,i) for i,c in sorted(dict.items()))
 
-def user_inventory(nick, db=None):
+def user_inventory(nick, db):
 	nick = nick.lower()
 
 	user_exists = database.get(db,'goodboy','nick','nick',nick.lower())
@@ -176,3 +196,10 @@ def user_inventory(nick, db=None):
 	inventory = database.get(db,'goodboy','items','nick',nick.lower())
 	if inventory in [False,None]: return None
 	return json.loads(inventory)
+
+def user_bonus(nick, db):
+	inventory = user_inventory(nick, db)
+	if inventory is None:
+		return 0
+	else:
+		return sum((items[item]['bonus']*inventory[item]) for item in inventory)
