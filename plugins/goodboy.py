@@ -76,8 +76,7 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 	"buy -- buy special presents with your good boy points"
 
 	global items
-	nick = nick.lower()
-	balance = database.get(db,'goodboy','gbp','nick',nick) or 0
+	balance = user_balance(nick, db)
 	balance = int(balance)
 
 	try:
@@ -119,7 +118,7 @@ def balance(inp, db=None, input=None, notice=None):
 			return
 		nick = inp
 		a=[inp, 'has']
-	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} {} good boy points.'.format(a[0], a[1], user_balance(nick.lower(), db))])
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} {} good boy points.'.format(a[0], a[1], user_balance(nick, db))])
 
 @hook.command(autohelp=False)
 def bonus(inp, nick=None, db=None, input=None, notice=None):
@@ -131,7 +130,6 @@ def bonus(inp, nick=None, db=None, input=None, notice=None):
 	else:
 		nick = inp
 		a=[inp, 'has']
-	nick = nick.lower()
 	bonus = user_bonus(nick, db)
 	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} {}% bonus.'.format(a[0], a[1], bonus)])
 
@@ -190,9 +188,12 @@ def dict2str(dict):
 	return ', '.join('{} {}'.format(c,i) for i,c in sorted(dict.items()))
 
 def user_balance(nick, db):
+	nick = nick.lower()
 	return database.get(db,'goodboy','gbp','nick',nick) or 0	
 
 def user_bonus(nick, db):
+	nick = nick.lower()
+
 	inventory = user_inventory(nick, db)
 	if inventory is None:
 		return 0
