@@ -106,18 +106,20 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 			return formatting.output(db, input.chan, 'Good Boy Points', ['You can\'t afford that!  You have {} good boy points but need {} to buy {} {}!!'.format(current, price, quantity, item)])
 
 @hook.command(autohelp=False)
-def balance(inp, nick=None, db=None, input=None, notice=None):
+def balance(inp, db=None, input=None, notice=None):
 	"balance -- check good boy points balance"
 
-	user_exists = database.get(db,'goodboy','nick','nick',inp)
-	if user_exists is False:
+	if inp == '':
+		nick = input.nick
 		a=['You', 'have']
 	else:
+		user_exists = database.get(db,'goodboy','nick','nick',inp)
+		if user_exists is False:
+			notice('User {} does not exist!'.format(inp))
+			return
 		nick = inp
 		a=[inp, 'has']
-	nick = nick.lower()
-	current = database.get(db,'goodboy','gbp','nick',nick) or 0
-	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} {} good boy points.'.format(a[0], a[1], current)])
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} currently {} {} good boy points.'.format(a[0], a[1], user_balance(nick.lower(), db))])
 
 @hook.command(autohelp=False)
 def bonus(inp, nick=None, db=None, input=None, notice=None):
@@ -187,6 +189,17 @@ def delete(inp, db=None, input=None):
 def dict2str(dict):
 	return ', '.join('{} {}'.format(c,i) for i,c in sorted(dict.items()))
 
+def user_balance(nick, db):
+	return database.get(db,'goodboy','gbp','nick',nick) or 0	
+
+def user_bonus(nick, db):
+	inventory = user_inventory(nick, db)
+	if inventory is None:
+		return 0
+	else:
+		return sum((items[item]['bonus']*inventory[item]) for item in inventory)
+
+
 def user_inventory(nick, db):
 	nick = nick.lower()
 
@@ -197,9 +210,3 @@ def user_inventory(nick, db):
 	if inventory in [False,None]: return None
 	return json.loads(inventory)
 
-def user_bonus(nick, db):
-	inventory = user_inventory(nick, db)
-	if inventory is None:
-		return 0
-	else:
-		return sum((items[item]['bonus']*inventory[item]) for item in inventory)
