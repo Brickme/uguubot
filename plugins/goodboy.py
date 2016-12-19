@@ -1,7 +1,7 @@
 #########################################################################################
 # Name			Good Boy Points
 # Description		Gives the user good boy points for tendies and McRibs
-# Version		1.1.2 (2016-12-14)
+# Version		1.1.3 (2016-12-18)
 # Contact		ScottSteiner@irc.rizon.net
 # Website		https://github.com/ScottSteiner/uguubot
 # Copyright		2016, ScottSteiner <nothingfinerthanscottsteiner@gmail.com>
@@ -10,6 +10,12 @@
 
 from util import hook, formatting, database, timeformat
 import random, json, time
+
+settings = {
+	'run_delay': 0,	# Delay between runs, in minutes
+	'warning_delay': 1,	# Delay between warnings, in minutes
+	'max_items': 50		# Maximum number of any item a user can have
+}
 
 phrases = {
 	'great': ['You throw your piss jugs at mummy and scream about not getting you\'re tendies. She gives you {} to shut you up'],
@@ -29,16 +35,16 @@ items = {
 def behave(inp, nick=None, db=None, input=None, notice=None):
 	"behave -- be a good boy and earn tendies"
 
-	global phrases, items
+	global phrases, items, settings
         nick = nick.lower()
 
 	last_run = database.get(db,'goodboy','last','nick',nick) or 0
 	last_run = int(float(last_run))
-	next_run = last_run + (60 * 60 * 3)
+	next_run = last_run + (60 * settings['run_delay'])
 	if time.time() < next_run:
 		last_warning = database.get(db,'goodboy','warning','nick',nick) or 0
 		last_warning = int(float(last_warning))
-		next_warning = last_warning + (60 * 1)
+		next_warning = last_warning + (60 * settings['warning_delay'])
 		next_warning = int(next_warning)
 		if time.time() > next_warning:
 			delay = next_run - time.time()
@@ -89,13 +95,20 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 	if item not in items:
 		notice(formatting.output(db, input.chan, 'Good Boy Points', ['Item not available in store.']))
 	else:
+		try:
+			inventory_quantity = user_inventory(nick, db)[item]
+		except:
+			inventory_quantity = 0
+		if (inventory_quantity + quantity) > settings['max_items']:
+			quantity = max(0,(settings['max_items'] - inventory_quantity))
 		price = items[item]['price'] * quantity
 		if balance >= price:
 			balance = balance - price
 			database.set(db,'goodboy','gbp',unicode(balance),'nick',nick)
 
 			inventory = user_inventory(nick, db)
-			if item in inventory:	inventory[item] += quantity
+			if inventory is None:	inventory = { item: quantity }
+			elif item in inventory:	inventory[item] += quantity
 			else: 			inventory[item]  = quantity
 			inventory = json.dumps(inventory)
 			database.set(db,'goodboy','items',inventory,'nick',nick)
