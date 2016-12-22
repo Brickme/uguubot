@@ -1,7 +1,7 @@
 #########################################################################################
 # Name			Good Boy Points
 # Description		Gives the user good boy points for tendies and McRibs
-# Version		1.1.3 (2016-12-18)
+# Version		1.2 (2016-12-18)
 # Contact		ScottSteiner@irc.rizon.net
 # Website		https://github.com/ScottSteiner/uguubot
 # Copyright		2016, ScottSteiner <nothingfinerthanscottsteiner@gmail.com>
@@ -12,7 +12,7 @@ from util import hook, formatting, database, timeformat
 import random, json, time
 
 settings = {
-	'run_delay': 0,	# Delay between runs, in minutes
+	'run_delay': 180,	# Delay between runs, in minutes
 	'warning_delay': 1,	# Delay between warnings, in minutes
 	'max_items': 50		# Maximum number of any item a user can have
 }
@@ -60,8 +60,9 @@ def behave(inp, nick=None, db=None, input=None, notice=None):
 
 	if command == 'behave': min,max = (-5,10)
 	else:			min,max = (-10,20)
-	min = min / (1+user_bonus(nick, db))
-	max = max * (1+user_bonus(nick, db))
+	bonus = 1 + (user_bonus(nick, db) / 100)
+	min = min / bonus
+	max = max * bonus
 
 	result = random.uniform(min,max)
 	result = int(result)
@@ -180,9 +181,31 @@ def store(inp, nick=None, db=None, input=None, notice=None):
 		
 	return formatting.output(db, input.chan, 'Good Boy Points Store', output)
 
+@hook.command(autohelp=False)
+def top(inp, db=None, input=None, notice=None):
+	"top -- shows the best good boys"
+
+	global items
+
+	top = {}
+
+	all_users = db.execute("SELECT nick, gbp from goodboy").fetchall()
+	for user in all_users:
+		inventory = user_inventory(user[0], db)
+		bonus = 0
+		if inventory is not None:
+			for item in inventory:
+				bonus += items[item]['price'] * inventory[item]
+		top[user[0]] = int(user[1]) + bonus
+
+	top = ['{} ({})'.format(u,top[u]) for u in sorted(top, key=top.get, reverse=True)[:10]]
+
+	notice(formatting.output(False, input.chan, 'Bestest Good Boys', top))
+#	return formatting.output(db, input.chan, 'Bestest Good Boys', top)
+
 @hook.command('gbpdebug', autohelp=False, adminonly=True)
 def debug(inp, db=None, input=None):
-	database.set(db,'goodboy','gbp','446','nick',input.nick.lower())
+	database.set(db,'goodboy','gbp','11446','nick',input.nick.lower())
 	if inp == '': nick = input.nick.lower()
 	else: nick = inp.lower()
 	info = db.execute("SELECT nick, gbp, items, last, warning from goodboy where nick = '{}'".format(nick))
@@ -208,11 +231,10 @@ def user_bonus(nick, db):
 	nick = nick.lower()
 
 	inventory = user_inventory(nick, db)
-	if inventory is None:
+	if inventory in [None,False]:
 		return 0
 	else:
 		return sum((items[item]['bonus']*inventory[item]) for item in inventory)
-
 
 def user_inventory(nick, db):
 	nick = nick.lower()
@@ -223,4 +245,3 @@ def user_inventory(nick, db):
 	inventory = database.get(db,'goodboy','items','nick',nick.lower())
 	if inventory in [False,None]: return None
 	return json.loads(inventory)
-
