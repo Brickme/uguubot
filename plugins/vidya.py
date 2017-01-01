@@ -8,9 +8,11 @@
 # License		GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 #########################################################################################
 
+import decimal
 from util import hook, http, formatting
 from lxml import html
-import decimal
+from HTMLParser import HTMLParser
+unescape = HTMLParser().unescape
 
 @hook.command(autohelp=True)
 def gameinfo(inp, db=None, input=None):
@@ -20,9 +22,9 @@ def gameinfo(inp, db=None, input=None):
 
 	data = game_info(appid)
 
-	name = data['name']
+	name = unescape(data['name'])
 	developer = ', '.join(data['developers']) or []
-	description = data['short_description']
+	description = unescape(data['short_description'])
 	player_count = '{:,} current players'.format(current_players(appid))
 
 	free = data['is_free']
@@ -39,7 +41,19 @@ def gameinfo(inp, db=None, input=None):
 		else:				   price = '${} (${}, {}% off)'.format(current_price, initial_price, discount)
 
 	output = [name,developer,price, player_count, description]
-	return formatting.output(db, input.chan, 'Game Info', output)
+	return formatting.output(db, input.chan, 'Vidya', output)
+
+@hook.command(autohelp=True)
+def compare_players(inp, db=None, input=None):
+	output = []
+
+	games = inp.split('|')
+
+	for game in games:
+		appid = app_name_to_id(game)
+		name = game_info(appid)['name'].encode('ascii', 'ignore')
+		output.append('{}: {:,} current players'.format(name, current_players(appid)))
+	return formatting.output(db, input.chan, 'Vidya', output)
 
 def current_players(appid):
 	api_url = 'https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1'
