@@ -21,6 +21,7 @@ shortcodes = {
 html_body = u"<html><head><title>{}</title></head><body>{}</body></html>"
 html_lines = u"<b>{}</b>: {}<br/>\n"
 html_items = u"<span style='border:1px solid {border}; background-color:{bg};' title='Added by {nick} on {date}'>{value}</span>"
+html_link = u"{url}<sup><a href='{url}'>link</a></sup>"
 
 def db_init(db):
     db.execute("create table if not exists mem(word, data, nick,"
@@ -96,10 +97,14 @@ def info(inp, notice=None, db=None):
     db_init(db)
 
     # attempt to get the factoid from the database
-    data = db.execute("SELECT data FROM mem where word=lower(?)", [inp]).fetchone()[0]
+    data, nick = db.execute("SELECT data, nick FROM mem where word=lower(?)", [inp]).fetchone()
 
     if data:
-        data = json.loads(data)
+        print(data, nick)
+        try:
+            data = json.loads(data)
+        except:
+            data = [{'value': data, 'date': 'N/A', 'nick': nick}]
         for row in data:
             try: date = datetime.fromtimestamp(row['date']).strftime("%F %T%Z")
             except: date = 'N/A'
@@ -174,6 +179,8 @@ def allhashes(inp, say=None, db=None):
     if inp: search = "{} WHERE word LIKE '%{}%'".format(search, inp)
     search = "{} ORDER BY word".format(search)
 
+    filename = 'hashes.html'
+
     rows = db.execute(search).fetchall()
 
     if rows:
@@ -203,11 +210,15 @@ def allhashes(inp, say=None, db=None):
 				date = 'N/A'
 			nick = value['nick']
 			value = value['value']
+			try:
+				value = html_link.format(url=value)
+			except:
+				pass
 			formatted_values.append(html_items.format(border=border_color, bg=background_color, value=value, nick=nick, date=date))
 		formatted_values = ' '.join(formatted_values)
 		web_list.append(html_lines.format(row[0], formatted_values))
 	output_web = html_body.format('rms hashtags', ''.join(web_list))
-	url = web.pomf({'hashes.html': output_web})['hashes.html']
+	url = web.pomf({filename: output_web})[filename]
 	url = web.isgd(url)
 	return url
     else: return "No results."
