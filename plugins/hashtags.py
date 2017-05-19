@@ -110,7 +110,7 @@ def info(inp, notice=None, db=None):
             try: date = datetime.fromtimestamp(row['date']).strftime("%F %T%Z")
             except: date = 'N/A'
             nick = row['nick']
-            value = row['value']
+            value = row['value'].encode('ascii', 'ignore')
             print('{}: {} ({} on {})'.format(inp.strip(), value, nick, date))
         # Only prints the last value
         notice('{}: {} ({} on {})'.format(inp.strip(), value, nick, date))
@@ -224,3 +224,16 @@ def allhashes(inp, say=None, db=None):
 	url = web.isgd(url)
 	return url
     else: return "No results."
+
+@hook.command(autohelp=False, adminonly=True)
+def updatedb(inp, notice=None, db=None):
+	"updatedb -- Loops through all hashtags using the get_memory function, causing a refresh"
+
+	# Searches the entire hashtag database
+	search = 'SELECT word, data, nick FROM mem ORDER BY word'
+	rows = db.execute(search).fetchall()
+	for row in rows:
+		word = row[0]
+		# Fetches each hashtag's value, updating it in the process
+		value = get_memory(db, word)
+		print('{} updated to {}'.format(word, value))
