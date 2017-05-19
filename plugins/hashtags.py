@@ -38,13 +38,17 @@ def get_memory(db, word):
         except: pass
         if isinstance(data, list) == False:
             #Converts old style to dict
-            data = [{'value': data, 'nick': nick, 'date': None, 'mirror': []}]
-            db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps(data), nick))
-            db.commit()
+            set_memory(db, word, data, nick, None, [])
             print('Replaced hashtag value {} with in database with new structure'.format(word))
         return data
     else:
         return None
+
+def set_memory(db, word, data):
+	if isinstance(data, list) == False:
+		data = [data]
+	db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps(data), nick))
+	db.commit()
 
 #@hook.regex(r'(.*) is (.*)')
 #@hook.regex(r'(.*) are (.*)')
@@ -67,6 +71,7 @@ def remember(inp, nick='', db=None, say=None, input=None, notice=None):
     else: new_data = []
     new_data.append({'value': data, 'nick': input.nick, 'date': time_now, 'mirror': []})
 
+    print(new_data)
     db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps(new_data), nick))
     db.commit()
 
@@ -246,17 +251,14 @@ def mirror(inp, notice=None, db=None, input=None):
 		return
 	command,word,mirror_data = inp[0], inp[1], inp[2:]
 
-	data = get_memory(db, word)[0]
+	data = get_memory(db, word)
 
 	if command == 'add':
-		print('start data: {}'.format(data))
 		if 'mirror' in data:
 			data['mirror'].extend(mirror_data)
 		else:
 			data['mirror'] = mirror_data
 
-		print('end data: {}'.format(data))
-		db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps([data]), input.nick))
-		db.commit()
+		set_memory(db, word, data['value'], data['nick'], data['date'], data['mirror'])
 	elif command == 'list':
 		print(data)
