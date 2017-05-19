@@ -31,17 +31,19 @@ def db_init(db):
 
 def get_memory(db, word):
 
-    row = db.execute("select data from mem where word=lower(?)",
-                     [word]).fetchone()
+    data = db.execute("select data,nick from mem where word=lower(?)",[word]).fetchone()
 
-    if row:
-        result = row[0]
-        try: result = json.loads(result)
+    if data:
+        data,nick = data
+        try: data = json.loads(data)
         except: pass
-        if isinstance(result, list) == False:
+        if isinstance(data, list) == False:
             #Converts old style to dict
-            result = [{'value': result, 'nick': None, 'date': None}]
-        return result
+            data = [{'value': data, 'nick': nick, 'date': None}]
+            db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps(data), nick))
+            db.commit()
+            print('Replaced hashtag value {} with in database with new structure'.format(word))
+        return data
     else:
         return None
 
@@ -100,7 +102,6 @@ def info(inp, notice=None, db=None):
     data, nick = db.execute("SELECT data, nick FROM mem where word=lower(?)", [inp]).fetchone()
 
     if data:
-        print(data, nick)
         try:
             data = json.loads(data)
         except:
@@ -111,6 +112,7 @@ def info(inp, notice=None, db=None):
             nick = row['nick']
             value = row['value']
             print('{}: {} ({} on {})'.format(inp.strip(), value, nick, date))
+        # Only prints the last value
         notice('{}: {} ({} on {})'.format(inp.strip(), value, nick, date))
     else:
         notice("Unknown Factoid.")
