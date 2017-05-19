@@ -28,18 +28,17 @@ def db_init(db):
                " primary key(word))")
     db.commit()
 
-
 def get_memory(db, word):
-
     data = db.execute("select data,nick from mem where word=lower(?)",[word]).fetchone()
 
     if data:
+        print(data)
         data,nick = data
         try: data = json.loads(data)
         except: pass
         if isinstance(data, list) == False:
             #Converts old style to dict
-            data = [{'value': data, 'nick': nick, 'date': None}]
+            data = [{'value': data, 'nick': nick, 'date': None, 'mirror': []}]
             db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps(data), nick))
             db.commit()
             print('Replaced hashtag value {} with in database with new structure'.format(word))
@@ -66,7 +65,7 @@ def remember(inp, nick='', db=None, say=None, input=None, notice=None):
 
     if old_data: new_data = old_data
     else: new_data = []
-    new_data.append({'value': data, 'nick': input.nick, 'date': time_now})
+    new_data.append({'value': data, 'nick': input.nick, 'date': time_now, 'mirror': []})
 
     db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps(new_data), nick))
     db.commit()
@@ -199,11 +198,8 @@ def allhashes(inp, say=None, db=None):
 				value = {'value': value, 'date': 'N/A', 'nick': row[2]}
 				background_color = 'palegoldenrod'
 				border_color = 'darkgoldenrod'
-				#db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (row, value, nick))
-				#db.commit()
-
 			else:
-				background_color = 'aqua'
+				background_color = 'lightskyblue'
 				border_color = 'deepskyblue'
 			date = value['date']
 			try:
@@ -237,3 +233,30 @@ def updatedb(inp, notice=None, db=None):
 		# Fetches each hashtag's value, updating it in the process
 		value = get_memory(db, word)
 		print('{} updated to {}'.format(word, value))
+
+@hook.command(autohelp=False, adminonly=True)
+def mirror(inp, notice=None, db=None, input=None):
+	"mirror -- Manages mirrors for hashtag files"
+
+	min_args = {'add': 2, 'list': 1, 'del': 2}
+
+	inp = inp.split()
+	if len(inp[1:]) < min_args[inp[0]]:
+		notice('Invalid arguments')
+		return
+	command,word,mirror_data = inp[0], inp[1], inp[2:]
+
+	data = get_memory(db, word)[0]
+
+	if command == 'add':
+		print('start data: {}'.format(data))
+		if 'mirror' in data:
+			data['mirror'].extend(mirror_data)
+		else:
+			data['mirror'] = mirror_data
+
+		print('end data: {}'.format(data))
+		db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps([data]), input.nick))
+		db.commit()
+	elif command == 'list':
+		print(data)
