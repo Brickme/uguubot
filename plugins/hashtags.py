@@ -32,19 +32,19 @@ def get_memory(db, word):
     data = db.execute("select data,nick from mem where word=lower(?)",[word]).fetchone()
 
     if data:
-        print(data)
         data,nick = data
         try: data = json.loads(data)
         except: pass
         if isinstance(data, list) == False:
             #Converts old style to dict
-            set_memory(db, word, data, nick, None, [])
+            data = [{'value': data, 'nick': nick, 'date': None, 'mirror': []}]
+            set_memory(db, word, data, nick)
             print('Replaced hashtag value {} with in database with new structure'.format(word))
         return data
     else:
         return None
 
-def set_memory(db, word, data):
+def set_memory(db, word, data, nick):
 	if isinstance(data, list) == False:
 		data = [data]
 	db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps(data), nick))
@@ -71,7 +71,6 @@ def remember(inp, nick='', db=None, say=None, input=None, notice=None):
     else: new_data = []
     new_data.append({'value': data, 'nick': input.nick, 'date': time_now, 'mirror': []})
 
-    print(new_data)
     db.execute("replace into mem(word, data, nick) values (lower(?),?,?)", (word, json.dumps(new_data), nick))
     db.commit()
 
@@ -242,23 +241,27 @@ def updatedb(inp, notice=None, db=None):
 @hook.command(autohelp=False, adminonly=True)
 def mirror(inp, notice=None, db=None, input=None):
 	"mirror -- Manages mirrors for hashtag files"
+	"       add <word> <number> <value>"
+	"       del <word> <number>"
+	"       list <word> <number>"
 
-	min_args = {'add': 2, 'list': 1, 'del': 2}
+	min_args = {'add': 3, 'list': 2, 'del': 2}
 
 	inp = inp.split()
 	if len(inp[1:]) < min_args[inp[0]]:
 		notice('Invalid arguments')
 		return
-	command,word,mirror_data = inp[0], inp[1], inp[2:]
+	command,word,number,mirror_data = inp[0], inp[1], int(inp[2]) - 1, inp[3:]
 
 	data = get_memory(db, word)
 
 	if command == 'add':
-		if 'mirror' in data:
-			data['mirror'].extend(mirror_data)
+		if 'mirror' in data[number]:
+			data[number]['mirror'].extend(mirror_data)
 		else:
-			data['mirror'] = mirror_data
+			data[number]['mirror'] = mirror_data
 
-		set_memory(db, word, data['value'], data['nick'], data['date'], data['mirror'])
+		set_memory(db, word, data, input.nick)
 	elif command == 'list':
-		print(data)
+		mirrors = ', '.join(data[number]['mirror'])
+		notice('Mirrors for {} (#{}): {}'.format(word, number + 1, mirrors))
