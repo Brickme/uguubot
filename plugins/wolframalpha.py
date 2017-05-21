@@ -1,7 +1,7 @@
 import re
 
 from util import hook, http, text, web, formatting
-import random
+import random, time
 
 #
 # Copyright 2009 Derik Pereira. All Rights Reserved.
@@ -288,15 +288,14 @@ errors = [
 @hook.command('calc')
 @hook.command('wa')
 @hook.command
-def wolframalpha(inp, bot=None):
+def wolframalpha(inp, bot=None, chan=None, input=None, db=None):
     """wa <query> -- Computes <query> using Wolfram Alpha."""
     server = 'http://api.wolframalpha.com/v2/query.jsp'
     api_key = bot.config.get("api_keys", {}).get("wolframalpha", None)
 
     if not api_key:
-        return formatting.output('WolframAlpha', ['error: missing api key'])
+        return formatting.output(db, input.chan, 'WolframAlpha', ['error: missing api key'])
 
-    import time
     start = time.clock()
 
     scantimeout = '3.0'
@@ -330,6 +329,8 @@ def wolframalpha(inp, bot=None):
     try:
 	waquery = re.sub(' (?:\||) +', ' ', ' '.join(results[0][0].splitlines())).strip()
 	waresult = ' '.join(results[1][0].splitlines())
-	return formatting.output('WolframAlpha', [waquery, waresult])
+	output = [waquery, waresult]
     except: 
-	return formatting.output('WolframAlpha', [random.choice(errors)])
+	output = [random.choice(errors)]
+
+    return formatting.output(db, input.chan, 'WolframAlpha', output)

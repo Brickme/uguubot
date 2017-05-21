@@ -15,33 +15,33 @@ from util import hook, http, formatting
 
 @hook.command("pomftube", adminonly=True)
 @hook.command(adminonly=True)
-def pomf(url):
+def pomf(url, db=None, input=None):
 	"pomf <url> -- Downloads file and uploads it"
 
-	return formatting.output('pomf', [download(url)])
+	return formatting.output(db, input.chan, 'pomf', [download(url)])
 
 @hook.command("pr", adminonly=True)
 @hook.command("premember", adminonly=True)
 @hook.command(adminonly=True)
-def pomfremember(inp, chan=None, nick=None, say=None, db=None, notice=None):
+def pomfremember(inp, chan=None, nick=None, say=None, db=None, notice=None, input=None):
 	"pomfremember <word> <url> -- Downloads file, uploads it and adds it to the dictionary"
 
         word, url = inp.split(None, 1)
 	pomfurl = upload(url)
 	strsave = "{} {}".format(word, pomfurl)
 	hashtags.remember(strsave, nick, db, say, inp, notice)
-	return(formatting.output('pomf', ['{} remembered as {}'.format(word, pomfurl)]))
+	return(formatting.output(db, input.chan, 'pomf', ['{} remembered as {}'.format(word, pomfurl)]))
 
 @hook.command("padd", adminonly=True)
 @hook.command(adminonly=True)
-def pomfadd(inp, chan=None, nick=None, notice=None, db=None, say=None):
+def pomfadd(inp, chan=None, nick=None, notice=None, db=None, say=None, input=None):
 	"pomfadd <word> <url> -- Downloads file, uploads it and adds it to the dictionary"
 
         dfile, url = inp.split(None, 1)
 	pomfurl = upload(url)
 	strsave = "{} {}".format(dfile, pomfurl)
 	datafiles.add(strsave, notice)
-	return(formatting.output('pomf', ['{} remembered as {}'.format(pomfurl, dfile)]))
+	return(formatting.output(db, input.chan, 'pomf', ['{} remembered as {}'.format(pomfurl, dfile)]))
 
 def download(url):
 	print('downloading url {}'.format(url))
@@ -68,7 +68,7 @@ def download(url):
 			}
 
 			extension = guess_extension(guess_type(url)[0]).replace('jpe','jpg')
-			temp = tempfile.NamedTemporaryFile(suffix=extension)
+			temp = tempfile.NamedTemporaryFile(suffix=extension, delete=False)
 			content = requests.get(url).content
 			temp.write(content)
 			file = temp.name
@@ -78,15 +78,14 @@ def download(url):
 		return "Error: {}".format(e)
 
 def upload(file):
-	print('uploading file {}'.format(file))
+	print('uploading file {}. Size: {}'.format(file, os.path.getsize(file)))
 	try:
-		fh = open(file, "rb")
-		fh.seek(0)
-
-		content = requests.post(url="http://sugoi.space/upload.php", files={"files[]":fh})
+		with open(file, 'rb') as f:
+			content = requests.post(url="https://pomf.cat/upload.php", files={"files[]":f})
+		print(content.json())
 		if not content.status_code // 100 == 2:
 			raise Exception("Unexpected response {}".format(content))
-		return "http://a.sugoi.space/{}".format(content.json()["files"][0]["url"])
+		return "https://a.pomf.cat/{} {}".format(content.json()["files"][0]["url"], os.path.getsize(file))
 	except Exception as e:
-		return "Error: {}".format(e)
-
+		print("Error: {}".format(e))
+		return("Upload failed")

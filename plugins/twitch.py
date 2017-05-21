@@ -11,23 +11,6 @@ def test(s):
     return set(s) <= valid
 
 
-def truncate(msg):
-    nmsg = msg.split(" ")
-    out = None
-    x = 0
-    for i in nmsg:
-        if x <= 7:
-            if out:
-                out = out + " " + nmsg[x]
-            else:
-                out = nmsg[x]
-        x += 1
-    if x <= 7:
-        return out
-    else:
-        return out + "..."
-
-
 @hook.regex(*multitwitch_re)
 def multitwitch_url(match):
     usernames = match.group(3).split("/")
@@ -44,24 +27,32 @@ def multitwitch_url(match):
 
 
 @hook.regex(*twitch_re)
-def twitch_url(match):
+def twitch_url(match, db=None, input=None):
     bit = match.group(4).split("#")[0]
     location = "/".join(bit.split("/")[1:])
     if not test(location):
         print "Not a valid username"
         return None
-    return formatting.output('Twitch', twitch_lookup(location))
+    return formatting.output(db, input.chan, 'Twitch', twitch_lookup(location))
 
 
-# @hook.command('twitchviewers')
-@hook.command
-def twitch(inp):
+@hook.command('twitchviewers')
+def twitch(inp, db=None, input=None):
     inp = inp.split("/")[-1]
     if test(inp):
         location = inp
     else:
         return "Not a valid channel name."
-    return formatting.output('Twitch', twitch_lookup(location))
+    return formatting.output(db, input.chan, 'Twitch', twitch_lookup(location))
+
+def twitch_lookup(location):
+    try: channel,type,id = location.split("/")
+    except: channel,type,id = location.split("/")[0], None, None
+
+    if type and id:
+        print('has type and id')
+    else:
+        print('no type and id')
 
 
 def twitch_lookup(location):
@@ -108,7 +99,7 @@ def twitch_lookup(location):
 	            data = http.get_json("https://api.twitch.tv/kraken/channels/" + channel)
 	        except:
 	            return
-		channel = data['channel']['display_name']
+		channel = data['display_name']
 	        title = data['status']
 	        game = data['game']
 	        status = "\x034\x02Offline\x02\x0f"

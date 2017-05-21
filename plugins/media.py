@@ -96,7 +96,7 @@ def get_episode_info(episode):
 @hook.command
 @hook.command('show')
 @hook.command('series')
-def tv(inp, bot=None):
+def tv(inp, bot=None, input=None, db=None):
     ".tv <series> -- get info for the <series>"
     res = {"error": None, "ended": False, "episodes": None, "name": None}
     # http://thetvdb.com/wiki/index.php/API:GetSeries
@@ -127,11 +127,11 @@ def tv(inp, bot=None):
 	elif status == "noeps":
 		status = "No new episodes"
 
-    return formatting.output('TV', [u'\x02{}\x02 ({}) \x02-\x02 \x02{}\x02 - {} - {}'.format(series_name, firstaired, status, tvdb_url, overview)])
+    return formatting.output(db, input.chan, 'TV', [u'\x02{}\x02 ({}) \x02-\x02 \x02{}\x02 - {} - {}'.format(series_name, firstaired, status, tvdb_url, overview)])
 
 @hook.command('next')
 @hook.command
-def tv_next(inp, bot=None):
+def tv_next(inp, bot=None, input=None, db=None):
     ".tv_next <series> -- get the next episode of <series>"
     status = get_status(inp, bot)
     
@@ -145,7 +145,7 @@ def tv_next(inp, bot=None):
     else:
 	(airdate, airtime, episode_number, episode_name, summary) = status
 
-	return formatting.output("TV", [u"\x02Next Episode Name\x02: {} ({})".format(episode_name, episode_number), "\x02Airdate\x02: {} {}".format(airdate, airtime), u"\x02Summary\x02: {}".format(summary)])
+	return formatting.output(db, input.chan, "TV", [u"\x02Next Episode Name\x02: {} ({})".format(episode_name, episode_number), "\x02Airdate\x02: {} {}".format(airdate, airtime), u"\x02Summary\x02: {}".format(summary)])
 
 def get_status(seriesname, bot):
 
@@ -231,16 +231,19 @@ def tv_last(inp, bot=None):
 
 @hook.command('tonight', autohelp=False)
 @hook.command(autohelp=False)
-def tv_tonight(inp,bot=None):
+def tv_tonight(inp,bot=None,input=None,db=None):
     '.tonight -- gets upcoming TV shows from Sickbeard'
 
     api_key = bot.config.get("api_keys", {}).get("sickbeard_key", None)
     api_ip = bot.config.get("api_keys", {}).get("sickbeard_ip", None)
     if not api_key:
-        return formatting.output("TV Tonight", ["Error: No API Key set"])
+        return formatting.output(db, input.chan, "TV Tonight", ["Error: No API Key set"])
 
     sickbeard_url = "http://{}/api/{}/?cmd=future&sort=date&type=today".format(api_ip, api_key)
-    sickbeard_data = http.get_json(sickbeard_url)['data']['today']
+    sickbeard_data = http.get_json(sickbeard_url)
+    print(sickbeard_data)
+    sickbeard_data = sickbeard_data['data']
+    sickbeard_data = sickbeard_data['today']
 
     results = {}
     output = []
@@ -249,21 +252,22 @@ def tv_tonight(inp,bot=None):
         showinfo = '{} ({})'.format(show['show_name'], show['network'])
 
         airtime = show['airs'].split(' ', 1)[1]
+        print(airtime)
         try:
-            airtime = datetime.datetime.strptime(airtime, '%H:%M').strftime('%I:%M %p')
+            airtime = datetime.datetime.strptime(airtime, '%I:%M %p')
+#            airtime = datetime.datetime.strptime(airtime, '%I:%M %p').strftime('%I:%M %p')
         except:
             pass
         if airtime in results:
             results[airtime].append(showinfo)
         else:
             results[airtime] = [showinfo]
-
     for t in sorted(results.keys()):
-	output.append('\x02{}\x02: {}'.format(t, ', '.join(results[t])))
+	output.append('\x02{}\x02: {}'.format(t.strftime('%-I:%M %p'), ', '.join(results[t])))
     if results == {}:
-        return formatting.output("TV Tonight", ["No shows airing tonight"])
+        output = ["No shows airing tonight"]
 
-    return formatting.output("TV Tonight", output)
+    return formatting.output(db, input.chan, "TV Tonight", output)
 
 
 id_re = re.compile("tt\d+")
