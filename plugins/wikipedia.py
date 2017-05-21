@@ -2,7 +2,7 @@
 Scaevolus 2009"""
 
 import re
-from util import hook, http, text
+from util import hook, http, text, formatting
 
 api_prefix = "http://en.wikipedia.org/w/api.php"
 search_url = api_prefix + "?action=opensearch&format=xml"
@@ -10,7 +10,7 @@ search_url = api_prefix + "?action=opensearch&format=xml"
 paren_re = re.compile('\s*\(.*\)$')
 
 @hook.command
-def wiki(inp):
+def wiki(inp, input=None, db=None):
     """wiki <phrase> -- Gets first sentence of Wikipedia article on <phrase>."""
 
     x = http.get_xml(search_url, search=inp)
@@ -42,4 +42,4 @@ def wiki(inp):
 
     #desc = text.truncate_str(desc, 200)
 
-    return u'{} :: {}'.format(http.quote(url.replace('en.wikipedia.org/wiki','enwp.org'), ':/'),desc)
+    return formatting.output(db, input.chan, 'Wikipedia', [title,desc])
