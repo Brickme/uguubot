@@ -7,19 +7,17 @@ from time import time
 from urllib import FancyURLopener
 import urllib2
 
-import gelbooru
-
 class urlopener(FancyURLopener):
     version = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0'
 
 opener = urlopener()
 
-link_re = (r'((https?://([-\w\.]+)+(:\d+)?(/([\S/_\.]*(\?\S+)?)?)?))', re.I)
+link_re = (r'^.*((https?://([-\w\.]+)+(:\d+)?(/([\S/_\.]*(\?\S+)?)?)?))', re.I)
 
 cache = {}
 
 @hook.regex(*link_re)
-def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
+def process_url(match,bot=None,input=None,chan=None,db=None,reply=None):
     global trimlength
     url = match.group(1).replace('https:','http:')
     if url in cache:
@@ -29,44 +27,40 @@ def process_url(match,bot=None,input=None,chan=None,db=None, reply=None):
     if '127.0.0.1' in url or 'localhost' in url.lower(): return
     
     trimlength = database.get(db,'channels','trimlength','chan',chan)
-    if not trimlength: trimlength = 9999
+    if not trimlength: trimlength = 400
     try: trimlength = int(trimlength)
     except: trimlength = trimlength
 
-    if   'youtube.com'       in url.lower(): return                         #handled by youtube plugin: exiting
-    elif 'youtu.be'          in url.lower(): return                         #handled by youtube plugin: exiting
-    elif 'yooouuutuuube'     in url.lower(): return                         #handled by youtube plugin: exiting
-    elif 'vimeo.com'         in url.lower(): return                         #handled by vimeo plugin: exiting
-    elif 'newegg.com'        in url.lower(): return                         #handled by newegg plugin: exiting
-    elif 'amazon.com'        in url.lower(): return                         #handled by Amazon plugin: exiting
-    elif 'reddit.com/r'      in url.lower(): return                         #handled by Reddit plugin: exiting
-    elif 'hulu.com'          in url.lower(): return                         #handled by hulu plugin: exiting
-    elif 'imdb.com'          in url.lower(): return                         #handled by imbd plugin: exiting
-    elif 'soundcloud.com'    in url.lower(): return                         #handled by soundcloud plugin: exiting
-    elif 'spotify.com'       in url.lower(): return                         #handled by Spotify plugin: exiting
-    elif 'twitch.tv'         in url.lower(): return                         #handled by Twitch plugin: exiting
-    elif 'twitter.com'       in url.lower(): return                         #handled by Twitter plugin: exiting
-    elif 'simg.gelbooru.com' in url.lower(): return unmatched_url(url)      #handled by Gelbooru plugin: exiting
-    elif 'gelbooru.com'      in url.lower(): return                         #handled by Gelbooru plugin: exiting
-    elif 'craigslist.org'    in url.lower(): return craigslist_url(url)     #Craigslist
-    elif 'ebay.com'          in url.lower(): return ebay_url(url,bot)       #Ebay
-    elif 'wikipedia.org'     in url.lower(): return wikipedia_url(url)      #Wikipedia
-    elif 'hentai.org'        in url.lower(): return hentai_url(url,bot)     #Hentai
-    elif 'boards.4chan.org'  in url.lower():                                #4chan
-        if '4chan.org/b/'    in url.lower(): reply('\x033>/b/\x03')
-        if '#p'              in url.lower(): return fourchanquote_url(url)  #4chan Quoted Post
-        if '/thread/'        in url.lower(): return fourchanthread_url(url)   #4chan Post
-        if '/res/'           in url.lower(): return fourchanthread_url(url)   #4chan Post
-        if '/src/'           in url.lower(): return unmatched_url(url)      #4chan Image
-        else:                        return fourchanboard_url(url)  #4chan Board
-    else:                            return unmatched_url(url,chan,db)      #process other url
+    domains_plugins = ['youtube.com', 'youtu.be', 'yooouuutuuube', 'vimeo.com', 'newegg.com', 'hulu.com', 'imdb.com', 'soundcloud.com', 'spotify.com', 'twitch.tv', 'twitter.com', 'gelbooru.com']
+    domains_ignore = ['tinyurl.com']
+    fourchan_threads = ['/thread/', '/res']
+
+    if any(domain in url.lower() for domain in domains_plugins): return			#handled by their own plugins: exiting
+    elif any(domain in url.lower() for domain in domains_ignore): return		#ignored domains: exiting
+    elif 'simg.gelbooru.com' in url.lower(): output = unmatched_url(url)		#handled by Gelbooru plugin: exiting
+    elif 'craigslist.org'    in url.lower(): output = craigslist_url(url)		#Craigslist
+    elif 'ebay.com'          in url.lower(): output = ebay_url(url,bot)			#Ebay
+    elif 'wikipedia.org'     in url.lower(): output = wikipedia_url(url)		#Wikipedia
+    elif 'hentai.org'        in url.lower(): output = hentai_url(url,bot)		#Hentai
+    elif 'boards.4chan.org'  in url.lower():						#4chan
+        if '#p'                in url.lower(): output = fourchanquote_url(url)		#4chan Quoted Post
+        elif any(c in url.lower() for c in fourchan_threads): output = fourchanthread_url(url)	#4chan Quoted Post
+        elif '/src/'           in url.lower(): output = unmatched_url(url)		#4chan Image
+        else:                  output = fourchanboard_url(url)				#4chan Board
+#    elif 'reddit.com'        in url.lower():						#Reddit
+#        if '/comments/'        in url.lower(): output = reddit_thread(url)		#Reddit comment
+#        else:                  output = unmatched_url(url,chan,db)			#Reddit unknown url
+
+    else:                            output = unmatched_url(url,chan,db)		#process other url
+
+    return formatting.output(db, input.chan, 'URL', output)
 
 
 #@hook.regex(*fourchan_re)
 def fourchanboard_url(match):
     soup = http.get_soup(match)
     title = soup.title.renderContents().strip()
-    return http.process_text("\x02{}\x02".format(title[:trimlength]))
+    return [http.process_text("\x02{}\x02".format(title[:trimlength]))]
 
 
 #fourchan_re = (r'.*((boards\.)?4chan\.org/[a-z]/res/[^ ]+)', re.I)
@@ -77,7 +71,7 @@ def fourchanthread_url(match):
     post = soup.find('div', {'class': 'opContainer'})
     comment = post.find('blockquote', {'class': 'postMessage'}).renderContents().strip()
     author = post.find_all('span', {'class': 'nameBlock'})[1]
-    return http.process_text("\x02{}\x02 - posted by \x02{}\x02: {}".format(title, author, comment[:trimlength]))
+    return [http.process_text("\x02{}\x02 - posted by \x02{}\x02: {}".format(title, author, comment[:trimlength]))]
 
 
 
@@ -85,20 +79,21 @@ def fourchanthread_url(match):
 #fourchanquote_re = (r'.*((boards\.)?4chan\.org/[a-z]/res/(\d+)#p(\d+))', re.I)
 #@hook.regex(*fourchanquote_re)
 def fourchanquote_url(match):
+    print(match)
     postid = match.split('#')[1]
     soup = http.get_soup(match)
     title = soup.title.renderContents().strip()
     post = soup.find('div', {'id': postid})
     comment = post.find('blockquote', {'class': 'postMessage'}).renderContents().strip()
     author = post.find_all('span', {'class': 'nameBlock'})[1].renderContents().strip()
-    return http.process_text("\x02{}\x02 - posted by \x02{}\x02: {}".format(title, author, comment[:trimlength]))
+    return [http.process_text("\x02{}\x02 - posted by \x02{}\x02: {}".format(title, author, comment[:trimlength]))]
 
 
 def craigslist_url(match):
     soup = http.get_soup(match)
     title = soup.find('h2', {'class': 'postingtitle'}).renderContents().strip()
     post = soup.find('section', {'id': 'postingbody'}).renderContents().strip()
-    return http.process_text("\x02Craigslist.org: {}\x02 - {}".format(title, post[:trimlength]))
+    return [http.process_text("\x02Craigslist.org: {}\x02 - {}".format(title, post[:trimlength]))]
 
 
 # ebay_item_re = r'http:.+ebay.com/.+/(\d+).+'
@@ -128,7 +123,7 @@ def ebay_url(match,bot):
     if feedback: feedback = feedback[0].strip()
     else: feedback = '?'
 
-    return http.process_text("\x02{}\x02 - \x02\x033{}\x03\x02 - Bids: {} - Feedback: {}".format(title, price, bids, feedback))
+    return [http.process_text("\x02{}\x02 - \x02\x033{}\x03\x02 - Bids: {} - Feedback: {}".format(title, price, bids, feedback))]
 
 
     # url = 'http://open.api.ebay.com/shopping?callname=GetSingleItem&responseencoding=JSON&appid=YourAppIDHere&siteid=0&version=515&ItemID={}&IncludeSelector=Description,ItemSpecifics'.format(itemid)
@@ -142,7 +137,7 @@ def wikipedia_url(match):
     soup = http.get_soup(match)
     title = soup.find('h1', {'id': 'firstHeading'}).renderContents().strip()
     post = soup.find('p').renderContents().strip().replace('\n','').replace('\r','')
-    return http.process_text("\x02Wikipedia.org: {}\x02 - {}...".format(title,post[:trimlength]))
+    return [http.process_text("\x02Wikipedia.org: {}\x02 - {}...".format(title,post[:trimlength]))]
 
 
 
@@ -183,9 +178,9 @@ def hentai_url(match,bot):
         for y in xrange(int(star_count),5):
             stars = "{}{}".format(stars,'☆')
 
-        return '\x02{}\x02 - \x02\x034{}\x03\x02 - {}'.format(title,stars,date).decode('utf-8')
+        return ['\x02{}\x02 - \x02\x034{}\x03\x02 - {}'.format(title,stars,date).decode('utf-8')]
     except:
-        return u'{}'.format(soup.title.string)
+        return [u'{}'.format(soup.title.string)]
 # amiami, hobby search and nippon yasan
 
 import urllib
@@ -207,9 +202,10 @@ def unmatched_url(match,chan,db):
     disabled_commands = database.get(db,'channels','disabled','chan',chan)
     
     try:
-	r = requests.get(match, headers=headers,allow_redirects=True, stream=True)
+	r = requests.get(match, headers=headers,allow_redirects=True, stream=True, verify=False)
     except Exception as e:
-	return formatting.output('URL', ['Error: {}'.format(e)])
+	print('Error: {}'.format(e))
+	return
 
     domain = urlparse(match).netloc
 
@@ -227,12 +223,12 @@ def unmatched_url(match,chan,db):
             body = html.fromstring(data)
 
             try: title = body.xpath('//title/text()')[0]
-	    except: return formatting.output('URL', ['No Title ({})'.format(domain)])
+	    except: return ['No Title ({})'.format(domain)]
 
             try: title_formatted = text.fix_bad_unicode(body.xpath('//title/text()')[0])
             except: title_formatted = body.xpath('//title/text()')[0]
             title_formatted = title_formatted.strip(' \t\n\r')
-            return formatting.output('URL', [u'{} ({})'.format(title_formatted[:trimlength], domain)])
+            return [u'{} ({})'.format(title_formatted[:trimlength], domain)]
         else:
 	    if disabled_commands:
                 if 'filesize' in disabled_commands: return
@@ -247,5 +243,5 @@ def unmatched_url(match,chan,db):
                 length = "Unknown size"
             if "503 B" in length: length = ""
             if length is None: length = ""
-	    return formatting.output('URL', ['{} Size: {} ({})'.format(content_type, length, domain)])
+	    return ['{} Size: {} ({})'.format(content_type, length, domain)]
     return
