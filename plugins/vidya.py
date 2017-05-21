@@ -38,11 +38,12 @@ def gameinfo(inp, db=None, input=None):
 		discount = data['price_overview']['discount_percent']
 
 		if current_price == initial_price: price = '${}'.format(current_price)
-		else:				   price = '${} (${}, {}% off)'.format(current_price, initial_price, discount)
+		else:				   price = '${} (reg ${}, {}% off)'.format(current_price, initial_price, discount)
 
 	output = [name,developer,price, player_count, description]
 	return formatting.output(db, input.chan, 'Vidya', output)
 
+@hook.command('players', autohelp=True)
 @hook.command(autohelp=True)
 def compare_players(inp, db=None, input=None):
 	output = []
@@ -51,7 +52,8 @@ def compare_players(inp, db=None, input=None):
 
 	for game in games:
 		appid = app_name_to_id(game)
-		name = game_info(appid)['name'].encode('ascii', 'ignore')
+		info = game_info(appid)
+		name = info['name'].encode('ascii', 'ignore')
 		output.append('{}: {:,} current players'.format(name, current_players(appid)))
 	return formatting.output(db, input.chan, 'Vidya', output)
 
@@ -66,6 +68,8 @@ def current_players(appid):
 		return e
 
 def app_name_to_id(appname):
+	try: return str(int(appname))
+	except: pass
 	search_url = 'http://store.steampowered.com/search/'
 
 	body = http.get(search_url, term=appname)
