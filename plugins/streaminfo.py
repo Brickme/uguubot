@@ -63,6 +63,5 @@ def getinfo(streams, viewers_colors):
 			output[stream_name] = [stream_name, stream_url, viewers]
 		except Exception as e:
 			error_info = '\x0304NOT LIVE [{}: {}]'.format(e, e.__doc__)
-			print(error_info)
-#			print(formatting.output('', [], 'streaminfo', [stream_name, stream_url, error_info]))
+			print(formatting.output('', [], 'streaminfo', [stream_name, stream_url, error_info]))
 	return(output)
