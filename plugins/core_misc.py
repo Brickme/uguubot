@@ -4,7 +4,7 @@ import re
 import json
 # import datetime
 
-from util import hook, user, database
+from util import hook, user, database, formatting
 
 socket.setdefaulttimeout(10)
 
@@ -65,7 +65,7 @@ def onkick(paraml, conn=None, chan=None, bot=None):
 
 @hook.event("JOIN")
 def onjoined(inp,input=None, conn=None, chan=None,raw=None, db=None):
-    database.set(db,'users','mask',input.mask.lower().replace('~',''),'nick',input.nick.lower())
+    database.set(db,'seen','host',input.mask.lower().replace('~',''),'name',input.nick.lower())
     mask = user.format_hostmask(input.mask)
     disabled_commands = database.get(db,'channels','disabled','chan',chan)
     if not disabled_commands: disabled_commands = ""
@@ -90,7 +90,7 @@ def onjoined(inp,input=None, conn=None, chan=None,raw=None, db=None):
         # send greeting
         greeting = database.get(db,'users','greeting','nick',input.nick)
 
-        if greeting: return greeting
+        if greeting: return formatting.output(db, input.chan, False, [greeting])
 
 
 @hook.event("PART")
