@@ -4,7 +4,7 @@ from util.text import capitalize_first
 
 @hook.command('t', autohelp=False)
 @hook.command('time', autohelp=False)
-def timefunction(inp, nick="", reply=None, db=None, notice=None):
+def timefunction(inp, nick="", reply=None, db=None, notice=None, input=None):
     "time [location] [dontsave] | [@ nick] -- Gets time for <location>."
 
     save = False
@@ -28,7 +28,6 @@ def timefunction(inp, nick="", reply=None, db=None, notice=None):
     try:
         url = "https://www.google.com/search?q=time+in+%s" % location.replace(' ','+').replace(' save','')
         html = http.get_html(url)
-        prefix = html.xpath("//div[contains(@class,'vk_c vk_gy')]//span[@class='vk_gy vk_sh']/text()")[0].strip()
         curtime = html.xpath("//div[contains(@class,'vk_c vk_gy')]//div[@class='vk_bk vk_ans']/text()")[0].strip()
         day = html.xpath("//div[contains(@class,'vk_c vk_gy')]//div[@class='vk_gy vk_sh']/text()")[0].strip()
         date = html.xpath("//div[contains(@class,'vk_c vk_gy')]//div[@class='vk_gy vk_sh']/span/text()")[0].strip()
@@ -37,46 +36,7 @@ def timefunction(inp, nick="", reply=None, db=None, notice=None):
 
     if location and save: database.set(db,'users','location',location,'nick',nick)
 
-    return formatting.output('Time', [u'{} is \x02{}\x02 [{} {}]'.format(prefix, curtime, day, date)])
-
-
-
-@hook.command('ttest', autohelp=False)
-def timefunction2(inp, nick="", reply=None, db=None, notice=None):
-    "time [location] [dontsave] | [@ nick] -- Gets time for <location>."
-
-    save = True
-    
-    if '@' in inp:
-        nick = inp.split('@')[1].strip()
-        location = database.get(db,'users','location','nick',nick)
-        if not location: return "No location stored for {}.".format(nick.encode('ascii', 'ignore'))
-    else:
-        location = database.get(db,'users','location','nick',nick)
-        if not inp:
-            if not location:
-                notice(time.__doc__)
-                return
-        else:
-            # if not location: save = True
-            if " dontsave" in inp: save = False
-            location = inp.split()[0]
-
-    # now, to get the actual time
-    try:
-        url = "https://time.is/%s" % location.replace(' ','+').replace(' save','')
-        html = http.get_html(url)
-        prefix = html.xpath("//div[@id='msgdiv']/h1/a/text()")[0].strip()
-        curtime = html.xpath("//div[contains(@id,'twd')]/text()")[0].strip()
-        ampm = html.xpath("//div[contains(@id,'twd')]/span/text()")[0].strip()
-        date = html.xpath("//h2[contains(@id,'dd')]/text()")[0].strip()
-    except IndexError:
-        return "Could not get time for that location."
-
-    if location and save: database.set(db,'users','location',location,'nick',nick)
-
-    return u'Time in {} is \x02{} {}\x02 [{}]'.format(prefix, curtime, ampm.upper(), date)
-
+    return formatting.output(db, input.chan, 'Time', [u'The time is \x02{}\x02 [{} {}]'.format(curtime, day, date)])
 
 
 
@@ -133,4 +93,4 @@ def beats(inp):
     if beat > 1000:
         beat -= 1000
 
-    return formatting.output('Swatch Internet Time', ['@{0:.2f}'.format(beat)])
+    return formatting.output(db, input.chan, 'Swatch Internet Time', ['@{0:.2f}'.format(beat)])
