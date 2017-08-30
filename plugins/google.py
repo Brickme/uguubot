@@ -2,36 +2,37 @@ import random
 from util import hook, http, text, database, web
 import re
 
-def api_get(kind, query):
-    """Use the RESTful Google Search API"""
-    url = 'http://ajax.googleapis.com/ajax/services/search/%s?' \
-          'v=1.0&safe=off'
-    return http.get_json(url % kind, q=query)
+def api_get(api_key, custom_search, query, fields):
+    """Use the Custom Google Search API"""
+    url = 'https://www.googleapis.com/customsearch/v1'
+    return http.get_json(url, q=query, fields=fields, cx=custom_search, key=api_key)
 
 
 @hook.command('search')
 @hook.command('g')
 @hook.command
-def google(inp,db=None,chan=None):
+def google(inp,db=None,chan=None, bot=None):
     """google <query> -- Returns first google search result for <query>."""
     trimlength = database.get(db,'channels','trimlength','chan',chan)
-    if not trimlength: trimlength = 9999 
+    if not trimlength: trimlength = 400
 
-    parsed = api_get('web', inp)
-    if not 200 <= parsed['responseStatus'] < 300:
-	print(parsed)
-        raise IOError('error searching for pages: {}: {}'.format(parsed['responseStatus'], parsed['responseDetails']))
-    if not parsed['responseData']['results']:
-        return 'No results found.'
+    api_key = bot.config.get("api_keys", {}).get("google")
+    custom_search = bot.config.get("api_keys", {}).get("google_custom_search")
 
-    result = parsed['responseData']['results'][0]
-    title = http.unescape(result['titleNoFormatting'])
-    content = http.unescape(result['content'])
+    parsed = api_get(api_key, custom_search, inp, 'items(link,snippet,title),queries(request/count)')
+
+    if parsed['queries']['request'][0]['count'] == '0':
+	return 'No results found'
+
+    result = parsed['items'][0]
+    title = result['title']
+    content = result['snippet']
+    url = result['link']
 
     if not content: content = "No description available."
     else: content = http.html.fromstring(content.replace('\n', '')).text_content()
 
-    return u'{} -- \x02{}\x02: "{}"'.format(result['unescapedUrl'], title, content)
+    return u'{} ({}): "{}"'.format(title, url, content)
 
 
 # @hook.command('image')
