@@ -43,6 +43,11 @@ fields = {
 def user_info(inp, nick=None, db=None, input=None, notice=None):
     global fields
     field_name = input.trigger
+
+    if field_name not in fields:
+        print('{} not in {}'.format(field_name, fields))
+        return
+	
     if 'field' in fields[field_name]:
         field_name = fields[field_name]['field']
 
@@ -67,6 +72,9 @@ def user_info(inp, nick=None, db=None, input=None, notice=None):
                 notice("Saved your {}.".format(field_description))
             else:
                 notice("Invalid input for {}".format(field_description))
+        else:
+            database.set(db,'users',field_name,'{} '.format(inp.strip().encode('utf8')),'nick',nick)
+            notice("Saved your {}.".format(field_description))
     return
 
 
@@ -87,3 +95,11 @@ def vidya(inp, nick=None, conn=None, input=None, chan=None,db=None, notice=None)
             output.append('{}: [N/A]'.format(field))
 
     return formatting.output(db, input.chan, 'vidya', output)
+
+@hook.command(autohelp=False, adminonly=True)
+def all(inp, nick=None, conn=None, input=None, chan=None,db=None, notice=None):
+	field = 'twitch'
+	result = db.execute("SELECT nick,? FROM users WHERE twitch NOT NULL", ('twitch',)).fetchall()
+	for r in result:
+		nick,stream = r
+		print([nick,stream])
