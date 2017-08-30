@@ -9,13 +9,15 @@ def filesize(num, suffix='B'):
     return '{0:.1f}{}{}'.format(num, 'Yi', suffix)
 
 def output(db, chan, scriptname, fields=[], color=11):
+    if fields is None: return
+    output = ' '.join(fields)
     split_output = set(re.sub('[#~&@+%,\.]', '', ' '.join(fields).lower()).split(' '))
     users = set(channel.users(db, chan))
     match = split_output & users
     if scriptname is False:
         scriptname = ''
     else:
-        scriptname = '[{}] '.format(scriptname)
+        scriptname = '[{}] '.format(scriptname.encode('utf8'))
 
     if len(match) >= 3:
         print(u'Nick spam detected. Output ignored: [{}] {}'.format(scriptname, ' - '.join(fields)))
