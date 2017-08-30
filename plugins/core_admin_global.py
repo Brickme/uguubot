@@ -153,6 +153,11 @@ def join(inp, conn=None, notice=None, bot=None):
             json.dump(bot.config, open('config', 'w'), sort_keys=True, indent=2)
     return
 
+@hook.command(autohelp=False, permissions=["botcontrol"], adminonly=True)
+def list(inp, conn=None, chan=None, notice=None, bot=None):
+    """list -- Lists channels in channellist and self.channels."""
+    channellist = bot.config["connections"][conn.name]["channels"]
+    print('channellist: {}\nconn.channels: {}'.format(channellist, conn.channels))
 
 @hook.command(autohelp=False, permissions=["botcontrol"], adminonly=True)
 def part(inp, conn=None, chan=None, notice=None, bot=None):
@@ -172,7 +177,9 @@ def part(inp, conn=None, chan=None, notice=None, bot=None):
 	    conn.part(target)
 	    channellist.remove(target.lower().strip())
 	    print 'Deleted {} from channel list.'.format(target)
-	else:
+	elif target in channellist:
+            channellist.remove(target.lower().strip())
+        else:
 	    notice(u"Not in {}!".format(target))
 
     json.dump(bot.config, open('config', 'w'), sort_keys=True, indent=2)
@@ -228,10 +235,11 @@ def say(inp, conn=None, chan=None):
 
 
 @hook.command(adminonly=True)
-def msg(inp, conn=None, chan=None, notice=None):
+def msg(inp, conn=None, chan=None, notice=None, input=None):
     "msg <user> <message> -- Sends a Message."
-    user = inp.split()[0]
-    message = " ".join(inp.split()[1:])
+    inp = input.msg.split()
+    user = inp[1]
+    message = " ".join(inp[2:])
     out = u"PRIVMSG %s :%s" % (user, message)
     conn.send(out)
 
@@ -281,7 +289,7 @@ def set(inp, conn=None, chan=None, db=None, notice=None):
 	value = " ".join(inp.split(" ")[2:]).strip()
         if field and nick and value:
             if 'del' in value or 'none' in value: value = ''
-            if field in ['location', 'fines', 'lastfm', 'desktop', 'battlestation', 'birthday', 'waifu', 'greeting', 'snapchat', 'steam']:
+            if field in ['location', 'fines', 'lastfm', 'desktop', 'battlestation', 'birthday', 'waifu', 'greeting', 'snapchat', 'steam', 'twitch', 'gbp']:
                 #if type(value) is list: value = value[0]
                 if value.lower() is 'none': database.set(db,'users',field, '','nick',nick) 
                 else: database.set(db,'users',field, value,'nick',nick) 
