@@ -205,6 +205,10 @@ def allhashes(inp, say=None, db=None):
 			else:
 				background_color = 'lightskyblue'
 				border_color = 'deepskyblue'
+
+			if re.search('a.pomf.se', value['value']):
+				background_color = 'salmon'
+
 			date = value['date']
 			try:
 				date = datetime.fromtimestamp(date).strftime("%F %T%Z")
