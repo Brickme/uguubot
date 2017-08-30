@@ -7,7 +7,7 @@ import re
 def mask(inp,bot=None,input=None,db=None):
     if inp: mask = user.get_hostmask(inp,db)
     else: mask = input.mask
-    return formatting.output('hostmask', [mask])
+    return formatting.output(db, input.chan, 'hostmask', [mask])
 
 
 def compare_hostmasks(hostmask,matchmasks):
