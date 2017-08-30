@@ -1,8 +1,6 @@
-import random
-import re
-import time
+import random, re, time
 
-from util import hook
+from util import hook, formatting
 
 
 def format_quote(q, num, n_quotes):
@@ -73,8 +71,7 @@ def get_quote_num(num, count, name):
     if num and num < 0:  # Count back if possible
         num = count + num + 1 if num + count > -1 else count + 1
     if num and num > count:  # If there are not enough quotes, raise an error
-        raise Exception("I only have %d quote%s for %s."\
-        % (count, ('s', '')[count == 1], name))
+        raise Exception("I only have %d quote%s for %s." % (count, ('s', '')[count == 1], name))
     if num and num == 0:  # If the number is zero, set it to one
         num = 1
     if not num:  # If a number is not given, select a random one
@@ -109,7 +106,7 @@ def get_quote_by_nick(db, nick, num=False):
     try:
         num = get_quote_num(num, count, nick)
     except Exception as error_message:
-        return error_message
+        return error_message[0]
 
     quote = db.execute('''SELECT time, nick, msg
                           FROM quote
@@ -166,7 +163,7 @@ def get_quote_by_chan(db, chan, num=False):
 
 @hook.command('q')
 @hook.command
-def quote(inp, nick='', chan='', db=None, notice=None,reply=None):
+def quote(inp, nick='', chan='', db=None, notice=None,reply=None,input=None):
     "quote <#chan | nick> [#n] ex: .quote add <nick> <msg> -- Gets " \
     "random or [#n]th quote by <nick> or from <#chan>/adds quote."
     create_table_if_not_exists(db)
@@ -185,12 +182,12 @@ def quote(inp, nick='', chan='', db=None, notice=None,reply=None):
         select, num = retrieve.groups()
         by_chan = True if select.startswith('#') else False
         if by_chan:
-            return get_quote_by_chan(db, select, num)
+            output = get_quote_by_chan(db, select, num)
         else:
-            return get_quote_by_nick(db, select, num)
+            output = get_quote_by_nick(db, select, num)
     elif retrieve_chan:
         chan, nick, num = retrieve_chan.groups()
-        return get_quote_by_nick_chan(db, chan, nick, num)
+        output = get_quote_by_nick_chan(db, chan, nick, num)
     elif retrieve_search:
         nick, search = retrieve_search.groups()
         if len(search) < 3: 
@@ -199,14 +196,13 @@ def quote(inp, nick='', chan='', db=None, notice=None,reply=None):
         else:
             results = search_quote(db,nick,search)
             if len(results) == 0: 
-                return "No Results"
-            elif len(results) < 3: 
-                for result in results: reply(result)
+                output = "No Results"
+            elif len(results) == 1: 
+                output = results[0]
             else: 
                 for result in results: notice(result)
-            return
-
-    notice(quote.__doc__)
+                return
+    return formatting.output(db, input.chan, 'Quote', [output])
 
 
 @hook.command(adminonly=True)
