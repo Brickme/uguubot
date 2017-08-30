@@ -62,7 +62,7 @@ def version(inp, nick=None, chan=None, conn=None, notice=None):
 @hook.command('pingme', autohelp=False)
 @hook.command(autohelp=False)
 def ping(inp, nick=None, chan=None, conn=None, notice=None, reply=None):
-    "version <nick> -- Returns version "
+    "ping <nick> -- Returns ping time for specified user/IP address "
     if '.' in inp:
         return pingip(inp,reply)
     else:
@@ -159,7 +159,7 @@ def ctcp_event(paraml, input=None, bot=None, conn=None):
 def host(inp, nick=None, conn=None, db=None):
     # return user.get_hostmask(inp,db)
     if not inp: inp = nick
-    db_host = database.get(db,'users','mask','nick',inp)
+    db_host = database.get(db,'seen','host','name',inp)
     if inp is db_host: db_host = database.get(db,'seen','host','name',inp)
     return "{}: {}".format(inp,db_host)
 
