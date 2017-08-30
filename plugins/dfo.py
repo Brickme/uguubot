@@ -7,7 +7,7 @@ import random
 
 from util import hook
 
-def dforoll (count, n):
+def dforoll (count, n, nick):
     "roll an n-sided die count times"
     rolls = []
     rollstrings = []
@@ -42,7 +42,7 @@ def dfo(inp, nick=None):
     if count > 50:
       return "Too many dice!"
 
-    result = dforoll(count, 10)
+    result = dforoll(count, 10, nick)
     rolls = result[0]
     rollstrings = result[1]
     total = sum(rolls)
