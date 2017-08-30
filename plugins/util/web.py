@@ -5,9 +5,10 @@ import urlnorm
 import json
 import urllib
 import yql
+import requests
 
 short_url = "http://is.gd/create.php"
-paste_url = "http://hastebin.com"
+paste_url = "https://hastebin.com"
 yql_env = "http://datatables.org/alltables.env"
 
 YQL = yql.Public()
@@ -52,6 +53,19 @@ def haste(text, ext='txt'):
     data = json.loads(page)
     return "{}/raw/{}.{}".format(paste_url, data['key'], ext)
 
+
+def pomf(text):
+    site = 'http://pomf.cat/upload.php'
+    prefix = 'http://a.pomf.cat/'
+
+    output = {}
+
+    for filename in text:
+        fh = {'files[]': (filename, text[filename])}
+        content = requests.post(url=site, files=fh)
+        url = '{}{}'.format(prefix, content.json()['files'][0]['url'])
+        output[filename] = url
+    return output
 
 def query(query, params={}):
     """ runs a YQL query and returns the results """
