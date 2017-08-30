@@ -1,7 +1,7 @@
 #########################################################################################
 # Name			Good Boy Points
 # Description		Gives the user good boy points for tendies and McRibs
-# Version		1.2 (2016-12-18)
+# Version		1.2.1 (2016-12-18)
 # Contact		ScottSteiner@irc.rizon.net
 # Website		https://github.com/ScottSteiner/uguubot
 # Copyright		2016, ScottSteiner <nothingfinerthanscottsteiner@gmail.com>
@@ -26,8 +26,9 @@ phrases = {
 }
 
 items = {
-	'tendies': {'price': 10, 'bonus': 0.01, 'description': 'Mommy\'s homemade tendies'},
-	'piss bottle': {'price': 50, 'bonus': 0.05, 'description': 'A 2 liter mountain dew bottle so you never have to leave the room while shitposting on pedochan.'}
+	'tendies': {'price': 10, 'bonus': 0.05, 'description': 'Mommy\'s homemade tendies'},
+	'piss bottle': {'price': 50, 'bonus': 0.25, 'description': 'A 2 liter mountain dew bottle so you never have to leave the room while shitposting on pedochan.'},
+	'piss jug': {'price': 200, 'bonus': 1.00, 'description': 'An empty gallon Arizona Iced Tea jug that mommy bought you to stop your autistic screeching.'}
 }
 
 @hook.command('piss', autohelp=False)
@@ -92,6 +93,8 @@ def buy(inp, nick=None, db=None, input=None, notice=None):
 	except:
 		item = inp
 		quantity = 1
+	if quantity < 0: quantity = 1
+	elif quantity > 50: quantity = 50
 
 	if item not in items:
 		notice(formatting.output(db, input.chan, 'Good Boy Points', ['Item not available in store.']))
@@ -182,30 +185,34 @@ def store(inp, nick=None, db=None, input=None, notice=None):
 	return formatting.output(db, input.chan, 'Good Boy Points Store', output)
 
 @hook.command(autohelp=False)
+def score(inp, db=None, input=None, notice=None):
+	"score -- shows a user's score"
+	if inp == '': nick = input.nick.lower()
+	else: nick = inp.lower()
+
+	u_score = user_score(nick, db)
+
+	return formatting.output(False, input.chan, 'Good Boy Points Score', [nick, u_score])
+
+@hook.command(autohelp=False)
+def bottom(inp, db=None, input=None, notice=None):
+	"bottom -- shows the worst good boys"
+	users = all_scores(db)
+	bottom = ['{} ({})'.format(u,users[u]) for u in sorted(users, key=users.get)[:10]]
+
+	notice(formatting.output(False, input.chan, 'Worstest Good Boys', bottom))
+
+@hook.command(autohelp=False)
 def top(inp, db=None, input=None, notice=None):
 	"top -- shows the best good boys"
-
-	global items
-
-	top = {}
-
-	all_users = db.execute("SELECT nick, gbp from goodboy").fetchall()
-	for user in all_users:
-		inventory = user_inventory(user[0], db)
-		bonus = 0
-		if inventory is not None:
-			for item in inventory:
-				bonus += items[item]['price'] * inventory[item]
-		top[user[0]] = int(user[1]) + bonus
-
-	top = ['{} ({})'.format(u,top[u]) for u in sorted(top, key=top.get, reverse=True)[:10]]
+	users = all_scores(db)
+	top = ['{} ({})'.format(u,users[u]) for u in sorted(users, key=users.get, reverse=True)[:10]]
 
 	notice(formatting.output(False, input.chan, 'Bestest Good Boys', top))
-#	return formatting.output(db, input.chan, 'Bestest Good Boys', top)
 
 @hook.command('gbpdebug', autohelp=False, adminonly=True)
 def debug(inp, db=None, input=None):
-	database.set(db,'goodboy','gbp','11446','nick',input.nick.lower())
+	database.set(db,'goodboy','gbp','-6666666666','nick',inp)
 	if inp == '': nick = input.nick.lower()
 	else: nick = inp.lower()
 	info = db.execute("SELECT nick, gbp, items, last, warning from goodboy where nick = '{}'".format(nick))
@@ -234,7 +241,8 @@ def user_bonus(nick, db):
 	if inventory in [None,False]:
 		return 0
 	else:
-		return sum((items[item]['bonus']*inventory[item]) for item in inventory)
+		bonus = sum((items[item]['bonus']*inventory[item]) for item in inventory)
+		return bonus
 
 def user_inventory(nick, db):
 	nick = nick.lower()
@@ -245,3 +253,31 @@ def user_inventory(nick, db):
 	inventory = database.get(db,'goodboy','items','nick',nick.lower())
 	if inventory in [False,None]: return None
 	return json.loads(inventory)
+
+def user_score(nick, db):
+	global items
+
+	score = db.execute("SELECT gbp from goodboy where nick = '{}'".format(nick)).fetchone()[0]
+	score = int(score)
+
+	inventory = user_inventory(nick, db)
+	bonus = 0
+	if inventory is not None:
+		for item in inventory:
+			bonus += items[item]['price'] * inventory[item]
+	score += bonus
+	return str(score)
+
+def all_scores(db):
+	global items
+	users = {}
+
+	all_users = db.execute("SELECT nick, gbp from goodboy").fetchall()
+	for user in all_users:
+		inventory = user_inventory(user[0], db)
+		bonus = 0
+		if inventory is not None:
+			for item in inventory:
+				bonus += items[item]['price'] * inventory[item]
+		users[user[0]] = int(user[1]) + bonus
+	return users
