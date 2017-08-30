@@ -112,7 +112,7 @@ def youtube(inp, bot=None, chan=None, input=None, db=None):
 
     video_id = request['items'][0]['id']['videoId']
 
-    return '{} - {}'.format(get_video_description(db, input.chan, key,video_id),video_url.format(video_id))
+    return u'{} - {}'.format(get_video_description(db, input.chan, key,video_id),video_url.format(video_id))
 
 
 @hook.command('ytime')
