@@ -1,9 +1,8 @@
 # IMDb lookup plugin by Ghetto Wizard (2011).
 
 from util import hook, http, formatting
-import re
+import re, sched, datetime, time
 
-import datetime
 from urllib2 import URLError
 from zipfile import ZipFile
 from cStringIO import StringIO
@@ -134,7 +133,7 @@ def tv(inp, bot=None, input=None, db=None):
 def tv_next(inp, bot=None, input=None, db=None):
     ".tv_next <series> -- get the next episode of <series>"
     status = get_status(inp, bot)
-    
+
     if len(status) == 1:
 	if status[0] == "ended":
 		return "{} has ended.".format(inp)
@@ -229,11 +228,8 @@ def tv_last(inp, bot=None):
         return '{} ended. The last episode aired {}'.format(series_name, prev_ep)
     return "The last episode of {} aired {}".format(series_name, prev_ep)
 
-@hook.command('tonight', autohelp=False)
-@hook.command(autohelp=False)
-def tv_tonight(inp,bot=None,input=None,db=None):
-    '.tonight -- gets upcoming TV shows from Sickbeard'
 
+def tv_tonight_data(inp,bot=None,input=None,db=None):
     api_key = bot.config.get("api_keys", {}).get("sickbeard_key", None)
     api_ip = bot.config.get("api_keys", {}).get("sickbeard_ip", None)
     if not api_key:
@@ -241,7 +237,6 @@ def tv_tonight(inp,bot=None,input=None,db=None):
 
     sickbeard_url = "http://{}/api/{}/?cmd=future&sort=date&type=today".format(api_ip, api_key)
     sickbeard_data = http.get_json(sickbeard_url)
-    print(sickbeard_data)
     sickbeard_data = sickbeard_data['data']
     sickbeard_data = sickbeard_data['today']
 
@@ -252,7 +247,6 @@ def tv_tonight(inp,bot=None,input=None,db=None):
         showinfo = '{} ({})'.format(show['show_name'], show['network'])
 
         airtime = show['airs'].split(' ', 1)[1]
-        print(airtime)
         try:
             airtime = datetime.datetime.strptime(airtime, '%I:%M %p')
 #            airtime = datetime.datetime.strptime(airtime, '%I:%M %p').strftime('%I:%M %p')
@@ -266,9 +260,30 @@ def tv_tonight(inp,bot=None,input=None,db=None):
 	output.append('\x02{}\x02: {}'.format(t.strftime('%-I:%M %p'), ', '.join(results[t])))
     if results == {}:
         output = ["No shows airing tonight"]
+    return output
 
+@hook.command('tonight', autohelp=False)
+@hook.command(autohelp=False)
+def tv_tonight(inp,bot=None,input=None,db=None):
+    '.tonight -- gets upcoming TV shows from Sickbeard'
+    output = tv_tonight_data(inp,bot,input,db)
     return formatting.output(db, input.chan, "TV Tonight", output)
 
+scheduler = sched.scheduler(time.time, time.sleep)
+
+@hook.command('tonight_topic', autohelp=False, adminonly=True)
+@hook.command(autohelp=False, adminonly=True)
+def tv_tonight_topic(inp,bot=None,input=None,db=None,conn=None):
+    '.tonight_topic -- Sets topic based on tonight\'s viewing schedule'
+    tonight = ' - '.join(tv_tonight_data(inp,bot,input,db))
+    date = datetime.date.today().strftime('%Y-%m-%d')
+    topic = '\x0313#\x0306/\x0304t\x037v\x0308/\x03 | say \x02\x0304.streaminfo\x03\x02 for stream links | \x0307Tonight\'s Schedule\x03 \x0310({})\x03: {}'.format(date, tonight)
+    output = 'TOPIC {} :{}'.format('#/tv/', topic)
+    conn.send(output)
+
+    scheduler.enter(86400, 1, tv_tonight_topic, (inp,bot,input,db,conn))
+    scheduler.run()
+    return
 
 id_re = re.compile("tt\d+")
 
