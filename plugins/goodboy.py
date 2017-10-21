@@ -181,7 +181,7 @@ def store(inp, nick=None, db=None, input=None, notice=None):
 		output = []
 		for item in items:
 			output.append('{}: {} gbp'.format(item, items[item]['price']))
-		
+
 	return formatting.output(db, input.chan, 'Good Boy Points Store', output)
 
 @hook.command(autohelp=False)
@@ -210,6 +210,19 @@ def top(inp, db=None, input=None, notice=None):
 
 	notice(formatting.output(False, input.chan, 'Bestest Good Boys', top))
 
+@hook.command('givegbp', autohelp=False, adminonly=True)
+def give(inp, db=None, input=None):
+	if len(inp) < 2: return
+	inp = inp.split()
+	nick = inp[0]
+	newGbp = int(inp[1])
+
+	balance = database.get(db,'goodboy','gbp','nick',nick) or 0
+	balance = int(balance) + newGbp
+
+	database.set(db,'goodboy','gbp',unicode(balance),'nick',nick)
+	return formatting.output(db, input.chan, 'Good Boy Points', ['{} now has {} good boy points.'.format(nick, balance)])
+
 @hook.command('gbpdebug', autohelp=False, adminonly=True)
 def debug(inp, db=None, input=None):
 	database.set(db,'goodboy','gbp','-6666666666','nick',inp)
@@ -225,14 +238,13 @@ def delete(inp, db=None, input=None):
 	else: nick = inp.lower()
 	db.execute("DELETE from goodboy WHERE nick = '{}';".format(nick))
 	db.commit()
-	debug(nick, db, input)
 
 def dict2str(dict):
 	return ', '.join('{} {}'.format(c,i) for i,c in sorted(dict.items()))
 
 def user_balance(nick, db):
 	nick = nick.lower()
-	return database.get(db,'goodboy','gbp','nick',nick) or 0	
+	return database.get(db,'goodboy','gbp','nick',nick) or 0
 
 def user_bonus(nick, db):
 	nick = nick.lower()
